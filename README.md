@@ -232,7 +232,10 @@ options* to use only your arguments for format selection and post-processing.
 - Unit tests for the core modules (engine argument builders, error classifier, router,
   fallback runner, cookies, download queue planner, Telegram parsers, …)
 
-- Instrumented tests on an emulator in CI (engines, MediaStore, encrypted vault, UI smoke test)
+- Instrumented tests on an emulator in CI: real engines (yt-dlp download and MP3 extraction
+  with ffmpeg, gallery-dl, engine fallback), MediaStore publishing, the encrypted vault, a UI
+  smoke test, and an end-to-end run from DownloadManager through the queue worker to
+  `Download/ALO/Other`
 - Pause/resume keeps partial files: yt-dlp and gallery-dl continue their `.part` files, TDLib
   resumes from its cache, public Telegram media resumes with HTTP Range
 
