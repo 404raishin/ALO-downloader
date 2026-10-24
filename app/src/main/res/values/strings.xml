@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ALO Downloader</string>
+    <string name="share_target_label">Download with ALO</string>
+    <string name="process_text_label">Download with ALO</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Download</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="input_hint">Paste or type links</string>
+    <string name="paste">Paste</string>
+    <string name="clear">Clear</string>
+    <string name="download">Download</string>
+    <string name="audio_only">Audio only</string>
+    <string name="configure_download">Choose format</string>
+    <string name="section_queue">Queue</string>
+    <string name="queue_empty_title">Nothing in the queue</string>
+    <string name="queue_empty_body">Share a link to ALO from any app, or paste one above.</string>
+    <string name="no_link_found">No link found</string>
+    <string name="copied">Copied</string>
+    <string name="more">More</string>
+    <string name="scheduled_for">Starts %1$s</string>
+    <plurals name="queued_count">
+        <item quantity="one">Added %d download</item>
+        <item quantity="other">Added %d downloads</item>
+    </plurals>
+    <plurals name="files_done">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+
+    <!-- Status -->
+    <string name="status_queued">Queued</string>
+    <string name="status_scheduled">Scheduled</string>
+    <string name="status_preparing">Preparing…</string>
+    <string name="status_running">Downloading</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_canceled">Canceled</string>
+    <string name="status_already_downloaded">Already downloaded (skipped by archive)</string>
+
+    <!-- Actions -->
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_copy_link">Copy link</string>
+    <string name="action_open_link">Open link</string>
+    <string name="action_download_again">Download again</string>
+    <string name="action_login">Log in</string>
+    <string name="action_login_platform">Log in to %1$s</string>
+
+    <!-- Errors -->
+    <string name="error_login_required">Login required</string>
+    <string name="error_cookie_expired">Login expired</string>
+    <string name="error_private">Private or restricted content</string>
+    <string name="error_rate_limited">Rate limited by the site</string>
+    <string name="error_geo_blocked">Not available in your region</string>
+    <string name="error_not_found">Content not found or removed</string>
+    <string name="error_storage">Could not save the file</string>
+    <string name="error_network">Network error</string>
+    <string name="error_no_media">No downloadable media found</string>
+    <string name="error_engine_unavailable">Download engine unavailable</string>
+    <string name="error_unsupported">This link is not supported</string>
+    <string name="error_unknown">Download failed</string>
+    <string name="hint_login">Log in once inside ALO so it can access this content with your account.</string>
+    <string name="hint_cookie_expired">Your saved login no longer works. Log in again to refresh it.</string>
+    <string name="hint_rate_limited">Wait a while before retrying, lower concurrent downloads, or use a different account.</string>
+    <string name="hint_network">Check your connection or proxy settings.</string>
+    <string name="hint_update_engines">The site may have changed. Try updating the engines in Settings.</string>
+
+    <!-- Notifications -->
+    <string name="channel_queue">Download service</string>
+    <string name="channel_progress">Download progress</string>
+    <string name="channel_result">Finished downloads</string>
+    <string name="notif_queue_title">ALO is downloading</string>
+    <string name="notif_failed_title">Failed: %1$s</string>
+    <plurals name="notif_queue_active">
+        <item quantity="one">%d active download</item>
+        <item quantity="other">%d active downloads</item>
+    </plurals>
+    <plurals name="notif_files_saved">
+        <item quantity="one">%d file saved</item>
+        <item quantity="other">%d files saved</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="settings_about">About</string>
+    <string name="about_version">Version %1$s</string>
+</resources>

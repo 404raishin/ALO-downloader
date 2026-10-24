@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Cookies and Telegram sessions never leave the device. -->
+        <exclude domain="sharedpref" path="alo_cookies.xml" />
+        <exclude domain="file" path="tdlib" />
+        <exclude domain="file" path="work" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="alo_cookies.xml" />
+        <exclude domain="file" path="tdlib" />
+    </device-transfer>
+</data-extraction-rules>
