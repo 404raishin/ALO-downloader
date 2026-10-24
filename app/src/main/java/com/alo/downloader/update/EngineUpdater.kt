@@ -21,7 +21,13 @@ import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class EngineVersions(val ytDlp: String?, val galleryDl: String?)
+data class EngineVersions(
+    val ytDlp: String?,
+    val galleryDl: String?,
+    /** Why an engine could not start, shown instead of a version. */
+    val ytDlpError: String? = null,
+    val galleryDlError: String? = null,
+)
 
 sealed interface UpdateResult {
     data class Updated(val version: String) : UpdateResult
@@ -52,7 +58,14 @@ class EngineUpdater @Inject constructor(
     }
     suspend fun versions(): EngineVersions = withContext(Dispatchers.IO) {
         ytDlp.ensureReady()
-        EngineVersions(ytDlp.version(), galleryDl.version())
+        val yt = ytDlp.version()
+        val gdl = galleryDl.version()
+        EngineVersions(
+            ytDlp = yt,
+            galleryDl = gdl,
+            ytDlpError = if (yt == null) ytDlp.initError ?: "yt-dlp did not start" else null,
+            galleryDlError = if (gdl == null) galleryDl.initError ?: "gallery-dl did not start" else null,
+        )
     }
 
     suspend fun updateYtDlp(channel: UpdateChannel): UpdateResult = withContext(Dispatchers.IO) {

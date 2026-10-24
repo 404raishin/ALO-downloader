@@ -307,4 +307,5 @@
     <string name="widget_paste">粘贴链接</string>
     <string name="pref_channel_limit">每个 Telegram 频道的帖子数</string>
     <string name="pref_channel_limit_value">最新 %1$d 条含媒体的帖子</string>
+    <string name="engine_start_failed">无法启动：%1$s</string>
 </resources>

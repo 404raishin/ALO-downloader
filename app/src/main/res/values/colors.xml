@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="window_background">#FFFBFE</color>
-    <color name="ic_launcher_background">#1E5BD8</color>
-    <color name="ic_launcher_foreground">#FFFFFF</color>
+    <color name="ic_launcher_background">#0A1634</color>
     <color name="widget_bg">#F3EDF7</color>
     <color name="widget_text">#1D1B20</color>
     <color name="widget_text_secondary">#49454F</color>

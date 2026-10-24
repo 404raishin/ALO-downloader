@@ -1,6 +1,10 @@
 package com.alo.downloader.ui.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Code
@@ -27,6 +31,14 @@ const val SOURCE_URL = "https://github.com/404raishin/ALO-downloader"
 fun AboutScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     SettingsPage(title = stringResource(R.string.settings_about), onBack = onBack) {
+        Image(
+            painter = painterResource(R.drawable.alo_logo),
+            contentDescription = stringResource(R.string.app_name),
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .size(112.dp)
+                .align(Alignment.CenterHorizontally),
+        )
         PreferenceItem(
             title = stringResource(R.string.app_name),
             summary = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),

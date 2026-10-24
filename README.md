@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" width="128" alt="ALO Downloader logo"></p>
+
 # ALO Downloader
 
 [![Build](https://github.com/404raishin/ALO-downloader/actions/workflows/build.yml/badge.svg)](https://github.com/404raishin/ALO-downloader/actions/workflows/build.yml)
@@ -9,7 +11,7 @@ link, picks the right engine (yt-dlp, gallery-dl or Telegram), falls back to ano
 if the first one fails, and saves the files to `Download/ALO/<Platform>`.
 
 Its design and feature set take inspiration from the open-source YouTube downloader Seal,
-extended to many platforms. All code, the name and the icon are original.
+extended to many platforms. All code, the name and the logo are original.
 
 > **Distribution:** ALO is published **only on GitHub Releases and F-Droid**. It is not, and
 > will not be, on Google Play. Any other source is unofficial.

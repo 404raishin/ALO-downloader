@@ -108,6 +108,8 @@ fun EnginesScreen(onBack: () -> Unit, viewModel: EnginesViewModel = hiltViewMode
     val state by viewModel.state.collectAsStateWithLifecycle()
     val s by viewModel.settings.collectAsStateWithLifecycle()
     val loading = stringResource(R.string.loading)
+    val context = LocalContext.current
+    val failed: (String?) -> String = { context.getString(R.string.engine_start_failed, it ?: "?") }
     SettingsPage(title = stringResource(R.string.settings_engines), onBack = onBack) {
         Text(
             stringResource(R.string.engines_intro),
@@ -117,14 +119,14 @@ fun EnginesScreen(onBack: () -> Unit, viewModel: EnginesViewModel = hiltViewMode
         )
         PreferenceItem(
             title = "yt-dlp",
-            summary = state.versions?.ytDlp ?: loading,
+            summary = state.versions?.let { it.ytDlp ?: failed(it.ytDlpError) } ?: loading,
             icon = Icons.Outlined.SmartDisplay,
             trailing = { if (state.updatingYtDlp) CircularProgressIndicator(Modifier.size(24.dp)) },
             onClick = if (state.updatingYtDlp) null else { { viewModel.updateYtDlp() } },
         )
         PreferenceItem(
             title = "gallery-dl",
-            summary = state.versions?.galleryDl ?: loading,
+            summary = state.versions?.let { it.galleryDl ?: failed(it.galleryDlError) } ?: loading,
             icon = Icons.Outlined.Collections,
             trailing = { if (state.updatingGalleryDl) CircularProgressIndicator(Modifier.size(24.dp)) },
             onClick = if (state.updatingGalleryDl) null else { { viewModel.updateGalleryDl() } },
