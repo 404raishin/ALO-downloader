@@ -3,6 +3,7 @@ package com.alo.downloader.update
 import android.content.Context
 import com.alo.downloader.core.update.PyPiRelease
 import com.alo.downloader.core.update.Versions
+import com.alo.downloader.data.db.TaskDao
 import com.alo.downloader.data.settings.SettingKeys
 import com.alo.downloader.data.settings.SettingsRepository
 import com.alo.downloader.data.settings.UpdateChannel
@@ -39,13 +40,24 @@ class EngineUpdater @Inject constructor(
     private val galleryDl: GalleryDlRuntime,
     private val http: OkHttpClient,
     private val settings: SettingsRepository,
+    private val taskDao: TaskDao,
 ) {
+    /** Thrown when an update would replace an engine that a running download is using. */
+    class EngineBusyException : IOException("Downloads are running. Pause or finish them before updating the engines.")
+
+    suspend fun downloadsRunning(): Boolean = taskDao.runningCount() > 0
+
+    private suspend fun requireIdle() {
+        if (downloadsRunning()) throw EngineBusyException()
+    }
     suspend fun versions(): EngineVersions = withContext(Dispatchers.IO) {
         ytDlp.ensureReady()
         EngineVersions(ytDlp.version(), galleryDl.version())
     }
 
     suspend fun updateYtDlp(channel: UpdateChannel): UpdateResult = withContext(Dispatchers.IO) {
+        // yt-dlp is a zip that a running process reads lazily; replacing it mid-download breaks it.
+        requireIdle()
         if (!ytDlp.ensureReady()) throw IOException(ytDlp.initError ?: "yt-dlp is not available")
         val target = if (channel == UpdateChannel.NIGHTLY) YoutubeDL.UpdateChannel._NIGHTLY else YoutubeDL.UpdateChannel._STABLE
         val status = YoutubeDL.getInstance().updateYoutubeDL(context, target)
@@ -54,6 +66,7 @@ class EngineUpdater @Inject constructor(
     }
 
     suspend fun updateGalleryDl(): UpdateResult = withContext(Dispatchers.IO) {
+        requireIdle()
         val current = galleryDl.version()
         val release = http.newCall(Request.Builder().url(PYPI_URL).build()).execute().use { response ->
             if (!response.isSuccessful) throw IOException("PyPI returned HTTP ${response.code}")

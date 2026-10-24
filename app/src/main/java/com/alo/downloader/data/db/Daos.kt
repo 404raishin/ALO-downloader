@@ -42,6 +42,9 @@ interface TaskDao {
     @Query("SELECT COUNT(*) FROM tasks WHERE status IN ('QUEUED','PREPARING','RUNNING')")
     suspend fun pendingCount(): Int
 
+    @Query("SELECT COUNT(*) FROM tasks WHERE status IN ('PREPARING','RUNNING')")
+    suspend fun runningCount(): Int
+
     @Query("UPDATE tasks SET status = :status WHERE id = :id")
     suspend fun setStatus(id: String, status: DownloadStatus)
 

@@ -2,6 +2,7 @@ package com.alo.downloader.update
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -22,6 +23,8 @@ class EngineUpdateWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        // Never swap an engine under a running download; try again later.
+        if (updater.downloadsRunning()) return Result.retry()
         updater.updateAll()
         return Result.success()
     }
@@ -36,6 +39,9 @@ class EngineUpdateWorker @AssistedInject constructor(
                 return
             }
             val request = PeriodicWorkRequestBuilder<EngineUpdateWorker>(7, TimeUnit.DAYS)
+                // The bundled engines are fresh on install; the first check can wait a day.
+                .setInitialDelay(1, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.UNMETERED)
