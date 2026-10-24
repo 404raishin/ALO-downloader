@@ -9,6 +9,7 @@ import com.alo.downloader.core.model.DownloadError
 import com.alo.downloader.core.model.DownloadOptions
 import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.FailureReason
+import com.alo.downloader.core.model.Platform
 import com.alo.downloader.core.router.PlatformResolver
 import com.alo.downloader.data.cookie.CookieRepository
 import com.yausername.youtubedl_android.YoutubeDL
@@ -44,11 +45,18 @@ class MediaInfoFetcher @Inject constructor(
         val platform = PlatformResolver.resolve(url)
         val cookieFile = cookies.writeCookieFile(platform, dir)
         try {
-            val request = YoutubeDLRequest(url).addCommands(YtDlpArgs.infoArgs(options, cookieFile)).withCacheDir(runtime)
-            val response = runInterruptible { YoutubeDL.getInstance().execute(request, id, false, null) }
-            MediaInfoParser.parse(response.out)?.let { Result.success(it) }
-                ?: Result.failure(MediaInfoException(ErrorClassifier.toError(response.err, EngineType.YT_DLP, cookieFile != null)))
+            val fast = if (platform == Platform.YOUTUBE) YtDlpArgs.fastYoutubeArgs(options, cookieFile != null) else null
+            // yt-dlp exits non-zero (an exception here) when the JS-free clients fail; then use the defaults.
+            val quick = fast?.let {
+                try {
+                    query(url, options, cookieFile, it, "$id-fast")
+                } catch (e: YoutubeDLException) {
+                    null
+                }
+            }
+            quick?.takeIf { it.isSuccess } ?: query(url, options, cookieFile, emptyList(), id)
         } catch (e: CancellationException) {
+            YoutubeDL.getInstance().destroyProcessById("$id-fast")
             YoutubeDL.getInstance().destroyProcessById(id)
             throw e
         } catch (e: YoutubeDLException) {
@@ -58,5 +66,12 @@ class MediaInfoFetcher @Inject constructor(
         } finally {
             dir.deleteRecursively()
         }
+    }
+
+    private suspend fun query(url: String, options: DownloadOptions, cookieFile: File?, extraArgs: List<String>, id: String): Result<MediaInfo> {
+        val request = YoutubeDLRequest(url).addCommands(YtDlpArgs.infoArgs(options, cookieFile) + extraArgs).withCacheDir(runtime)
+        val response = runInterruptible { YoutubeDL.getInstance().execute(request, id, false, null) }
+        return MediaInfoParser.parse(response.out)?.let { Result.success(it) }
+            ?: Result.failure(MediaInfoException(ErrorClassifier.toError(response.err, EngineType.YT_DLP, cookieFile != null)))
     }
 }

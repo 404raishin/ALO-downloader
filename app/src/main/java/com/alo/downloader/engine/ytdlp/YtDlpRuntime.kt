@@ -50,6 +50,15 @@ class YtDlpRuntime @Inject constructor(@ApplicationContext private val context: 
      */
     val cacheDir: File get() = File(context.cacheDir, "yt-dlp")
 
+    /**
+     * CA bundle the library hands to aria2c (inside its unpacked Python). It is a private field,
+     * read by reflection after init; null means aria2c arguments are left to the library.
+     */
+    val caCertificate: String?
+        get() = if (!isReady) null else runCatching {
+            YoutubeDL::class.java.getDeclaredField("ENV_SSL_CERT_FILE").apply { isAccessible = true }.get(null) as String?
+        }.getOrNull()?.takeIf { File(it).exists() }
+
     @Volatile private var reportedVersion: String? = null
 
     /**

@@ -44,6 +44,9 @@ object YtDlpArgs {
     /**
      * @param aria2cBinary name of the bundled aria2c executable (youtubedl-android ships it as
      *   `libaria2c.so`), only used when [DownloadOptions.useAria2c] is set.
+     * @param aria2cCaCertificate CA bundle for aria2c. yt-dlp keeps only the last
+     *   `--external-downloader-args aria2c:…`, so ours must repeat the library's
+     *   `--ca-certificate` or aria2c cannot verify any HTTPS server (errorCode=1).
      */
     fun build(
         options: DownloadOptions,
@@ -51,6 +54,7 @@ object YtDlpArgs {
         cookieFile: File? = null,
         archiveFile: File? = null,
         aria2cBinary: String = "libaria2c.so",
+        aria2cCaCertificate: String? = null,
     ): List<String> {
         val args = mutableListOf<String>()
         fun opt(name: String, value: String? = null) {
@@ -88,7 +92,8 @@ object YtDlpArgs {
         if (options.restrictFilenames) opt("--restrict-filenames")
         if (options.useAria2c) {
             opt("--downloader", aria2cBinary)
-            opt("--external-downloader-args", "aria2c:--summary-interval=1")
+            // Without a CA path, leave the arguments to the library, whose own include it.
+            aria2cCaCertificate?.let { opt("--external-downloader-args", "aria2c:--summary-interval=1 --ca-certificate=${shellQuote(it)}") }
         } else if (options.concurrentFragments > 1) {
             opt("-N", options.concurrentFragments.toString())
         }
@@ -132,6 +137,19 @@ object YtDlpArgs {
         return args
     }
 
+    /**
+     * Options that make yt-dlp use YouTube clients needing no JS player, so it skips solving
+     * YouTube's JS challenge in QuickJS (minutes on a phone). Null when the user's cookies or
+     * own extractor arguments must decide the clients; callers fall back to the defaults when
+     * these clients fail (e.g. YouTube Kids videos, which android_vr does not return).
+     */
+    fun fastYoutubeArgs(options: DownloadOptions, hasCookies: Boolean): List<String>? {
+        if (hasCookies || options.customArgsFor(EngineType.YT_DLP).any { "extractor-args" in it }) return null
+        return listOf("--extractor-args", FAST_YOUTUBE_CLIENTS)
+    }
+
+    const val FAST_YOUTUBE_CLIENTS = "youtube:player_client=android_vr,android_sdkless"
+
     /** Options used to fetch metadata (formats, playlist entries) without downloading. */
     fun infoArgs(options: DownloadOptions, cookieFile: File? = null, flatPlaylist: Boolean = true): List<String> {
         val args = mutableListOf("--dump-single-json", "--no-warnings", "--no-colors")
@@ -149,6 +167,9 @@ object YtDlpArgs {
             "%(playlist_title).80B/%(playlist_index)03d - $template"
         } else template
     }
+
+    private fun shellQuote(value: String) =
+        if (value.none { it.isWhitespace() || it in "'\"\\" }) value else "'" + value.replace("'", "'\"'\"'") + "'"
 
     private fun List<String>.containsOutputTemplate() = any { it == "-o" || it == "--output" }
 }

@@ -15,6 +15,13 @@ class ErrorClassifierTest {
     }
 
     @Test
+    fun `instagram login redirect needs login`() {
+        val out = "[instagram][error] HTTP redirect to login page (https://www.instagram.com/accounts/login/)"
+        assertEquals(FailureReason.LOGIN_REQUIRED, ErrorClassifier.classify(out))
+        assertEquals(FailureReason.COOKIE_EXPIRED, ErrorClassifier.classify(out, hasCookies = true))
+    }
+
+    @Test
     fun `login error with cookies means cookies expired`() {
         val out = "ERROR: [Instagram] xyz: Requested content is not available, rate-limit reached or login required"
         // rate-limit wording wins over login wording because it is checked first

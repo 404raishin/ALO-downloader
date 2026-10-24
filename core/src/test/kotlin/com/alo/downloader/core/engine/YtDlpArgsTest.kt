@@ -110,5 +110,23 @@ class YtDlpArgsTest {
         val args = YtDlpArgs.build(DownloadOptions(useAria2c = true, concurrentFragments = 8), dir)
         assertEquals("libaria2c.so", args.valueOf("--downloader"))
         assertFalse("-N" in args)
+        // Without a CA path the library's own aria2c arguments (which carry one) must win.
+        assertFalse("--external-downloader-args" in args)
+    }
+
+    @Test
+    fun `aria2c arguments keep the CA certificate`() {
+        val args = YtDlpArgs.build(DownloadOptions(useAria2c = true), dir, aria2cCaCertificate = "/data/py/usr/etc/tls/cert.pem")
+        assertEquals("aria2c:--summary-interval=1 --ca-certificate=/data/py/usr/etc/tls/cert.pem", args.valueOf("--external-downloader-args"))
+        val spaced = YtDlpArgs.build(DownloadOptions(useAria2c = true), dir, aria2cCaCertificate = "/data/my files/cert.pem")
+        assertEquals("aria2c:--summary-interval=1 --ca-certificate='/data/my files/cert.pem'", spaced.valueOf("--external-downloader-args"))
+    }
+
+    @Test
+    fun `fast youtube clients unless cookies or own extractor args`() {
+        assertEquals(listOf("--extractor-args", YtDlpArgs.FAST_YOUTUBE_CLIENTS), YtDlpArgs.fastYoutubeArgs(DownloadOptions(), hasCookies = false))
+        assertEquals(null, YtDlpArgs.fastYoutubeArgs(DownloadOptions(), hasCookies = true))
+        val custom = DownloadOptions(customArgs = listOf("--extractor-args", "youtube:player_client=web"))
+        assertEquals(null, YtDlpArgs.fastYoutubeArgs(custom, hasCookies = false))
     }
 }

@@ -24,12 +24,12 @@ object Fixtures {
 
     val context: Context get() = ApplicationProvider.getApplicationContext()
 
-    fun job(url: String, options: DownloadOptions = quietOptions()): EngineJob {
+    fun job(url: String, options: DownloadOptions = quietOptions(), platform: Platform = Platform.GENERIC): EngineJob {
         val id = "test-" + UUID.randomUUID()
         return EngineJob(
             taskId = id,
             url = url,
-            platform = Platform.GENERIC,
+            platform = platform,
             workDir = File(context.cacheDir, id).apply { mkdirs() },
             options = options,
         )

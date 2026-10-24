@@ -1,5 +1,6 @@
 package com.alo.downloader.engine.ytdlp
 
+import android.util.Log
 import com.alo.downloader.core.engine.DownloadEngine
 import com.alo.downloader.core.engine.EngineJob
 import com.alo.downloader.core.engine.EngineProgress
@@ -13,6 +14,7 @@ import com.alo.downloader.core.engine.YtDlpOutput
 import com.alo.downloader.core.model.DownloadError
 import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.FailureReason
+import com.alo.downloader.core.model.Platform
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -39,9 +41,29 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
             )
         }
         job.workDir.mkdirs()
+        val fast = if (job.platform == Platform.YOUTUBE) YtDlpArgs.fastYoutubeArgs(job.options, job.cookieFile != null) else null
+        if (fast != null) {
+            val result = attempt(job, listener, fast)
+            if (result is EngineResult.Success || result.reason in FINAL) return result
+            Log.i(TAG, "${job.taskId}: JS-free YouTube clients failed, retrying with the defaults: $result")
+            listener.onProgress(EngineProgress(line = RETRY_DEFAULT_CLIENTS))
+        }
+        val result = attempt(job, listener)
+        // aria2c can fail where yt-dlp's own downloader works (TLS, server quirks); try once without it.
+        if (job.options.useAria2c && result is EngineResult.Failure && result.reason !in FINAL &&
+            result.error.message.contains("aria2", ignoreCase = true)
+        ) {
+            Log.i(TAG, "${job.taskId}: aria2c failed, retrying with yt-dlp's downloader: ${result.error}")
+            listener.onProgress(EngineProgress(line = RETRY_WITHOUT_ARIA2C))
+            return attempt(job.copy(options = job.options.copy(useAria2c = false)), listener)
+        }
+        return result
+    }
+
+    private suspend fun attempt(job: EngineJob, listener: ProgressListener, extraArgs: List<String> = emptyList()): EngineResult {
         val metaFile = File(job.workDir, ".meta/info.tsv").apply { parentFile?.mkdirs(); delete() }
-        val args = YtDlpArgs.build(job.options, job.workDir, job.cookieFile, job.archiveFile) +
-            listOf("--print-to-file", "video:%(title)s\t%(thumbnail)s", metaFile.absolutePath)
+        val args = YtDlpArgs.build(job.options, job.workDir, job.cookieFile, job.archiveFile, aria2cCaCertificate = runtime.caCertificate) +
+            extraArgs + listOf("--print-to-file", "video:%(title)s\t%(thumbnail)s", metaFile.absolutePath)
         val request = YoutubeDLRequest(job.url).addCommands(args).withCacheDir(runtime)
         val log = OutputTail()
         var title: String? = null
@@ -124,9 +146,19 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
         file.takeIf { it.exists() }?.readLines()?.firstOrNull()?.substringBefore('\t')?.takeIf { it.isNotBlank() && it != "NA" }
     }.getOrNull()
 
-    private companion object {
-        val SPEED = Regex("""at\s+~?\s*([\d.]+\s*[KMGT]?i?B/s)""")
-        val ALREADY = Regex("""has already been (recorded in the archive|downloaded)""")
+    private val EngineResult.reason get() = (this as? EngineResult.Failure)?.error?.reason
+
+    companion object {
+        private const val TAG = "YtDlpEngine"
+
+        /** Progress lines announcing a second attempt (shown on the task card, checked by tests). */
+        const val RETRY_DEFAULT_CLIENTS = "[ALO] Fast YouTube clients failed, retrying with yt-dlp's defaults"
+        const val RETRY_WITHOUT_ARIA2C = "[ALO] aria2c failed, retrying with yt-dlp's own downloader"
+
+        /** Failures another attempt with different options cannot fix. */
+        private val FINAL = setOf(FailureReason.CANCELED, FailureReason.STORAGE)
+        private val SPEED = Regex("""at\s+~?\s*([\d.]+\s*[KMGT]?i?B/s)""")
+        private val ALREADY = Regex("""has already been (recorded in the archive|downloaded)""")
     }
 }
 

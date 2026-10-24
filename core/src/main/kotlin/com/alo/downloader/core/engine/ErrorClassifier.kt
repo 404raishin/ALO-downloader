@@ -28,6 +28,8 @@ object ErrorClassifier {
             rx("""confirm your age"""), rx("""inappropriate for some users"""),
             rx("""you need to log in"""), rx("""members[- ]only"""), rx("""join this channel"""),
             rx("""AuthenticationError"""), rx("""sensitive content"""), rx("""NSFW"""),
+            // Instagram sends anonymous requests to its login page instead of the post.
+            rx("""redirect(ed)? to (the )?login"""), rx("""/accounts/login"""),
         ),
         FailureReason.PRIVATE_CONTENT to listOf(
             rx("""private (video|account|profile|post|channel|playlist)"""), rx("""this (video|account|post) is private"""),

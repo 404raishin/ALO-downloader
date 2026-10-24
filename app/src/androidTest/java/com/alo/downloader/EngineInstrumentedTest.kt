@@ -12,6 +12,7 @@ import com.alo.downloader.engine.ytdlp.YtDlpEngine
 import com.alo.downloader.engine.ytdlp.YtDlpRuntime
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -52,6 +53,18 @@ class EngineInstrumentedTest {
         val result = ytDlp.download(job) { }.success()
         assertEquals(1, result.files.size)
         assertTrue(result.files.first().length() > 1000)
+    }
+
+    /** Regression: our aria2c arguments used to drop the library's CA bundle (errorCode=1 on HTTPS). */
+    @Test
+    fun ytDlpDownloadsOverHttpsWithAria2c() = runBlocking {
+        val options = Fixtures.quietOptions().copy(useAria2c = true)
+        val lines = mutableListOf<String>()
+        val result = ytDlp.download(Fixtures.job(Fixtures.clipUrl, options)) { p -> p.line?.let(lines::add) }.success()
+        assertEquals(1, result.files.size)
+        // The engine retries without aria2c on failure; that retry must not have been needed.
+        assertFalse(lines.joinToString("\n"), YtDlpEngine.RETRY_WITHOUT_ARIA2C in lines)
+        assertNotNull("CA bundle path not found", ytRuntime.caCertificate)
     }
 
     @Test
