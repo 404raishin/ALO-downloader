@@ -306,7 +306,10 @@ fun ErrorPanel(
             Spacer(Modifier.height(4.dp))
             Text(attempts, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f))
         }
-        if (reason.needsLogin && (platform.supportsWebLogin || platform == Platform.TELEGRAM)) {
+        // Sites like Instagram rate-limit anonymous visitors far sooner than logged-in ones.
+        val loginHelps = reason.needsLogin && (platform.supportsWebLogin || platform == Platform.TELEGRAM) ||
+            reason == com.alo.downloader.core.model.FailureReason.RATE_LIMITED && platform.supportsWebLogin
+        if (loginHelps) {
             Spacer(Modifier.height(10.dp))
             FilledTonalButton(onClick = { onLogin(platform) }) {
                 Icon(Icons.AutoMirrored.Outlined.Login, null, Modifier.size(18.dp))

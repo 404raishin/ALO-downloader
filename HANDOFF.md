@@ -78,3 +78,10 @@
 ## Logo
 - The user's glossy blue "A" logo, cleaned of edge specks, on a navy `#0A1634` adaptive icon.
 - Also in `docs/logo.png`, `drawable-nodpi/alo_logo.png` and the fastlane icon.
+
+## Speed / Instagram round (after beta 3)
+- YouTube: tries the JS-free `android_vr,android_sdkless` clients first (`YtDlpArgs.fastYoutubeArgs`); falls back to defaults unless the failure is login / bot check / rate limit.
+- aria2c: our `--external-downloader-args` used to drop the library's `--ca-certificate` (yt-dlp keeps only the last one) → errorCode=1 on every HTTPS host. Fixed; one retry without aria2c on aria2c errors.
+- gallery-dl: `-o sleep-429=0` so a 429 fails at once instead of 4 × 60 s of sleeping.
+- Instagram "redirect to login page" → LOGIN_REQUIRED; rate-limit errors on web-login platforms also offer the login button.
+- `live_sites` workflow input: `LiveSiteTest` downloads real YouTube/Instagram links on the emulator and logs timings (tag `ALO-LIVE`). GitHub runner IPs get YouTube's bot check and Instagram 429s, so it only shows the extraction path and timings, not end-to-end success.

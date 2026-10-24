@@ -44,7 +44,7 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
         val fast = if (job.platform == Platform.YOUTUBE) YtDlpArgs.fastYoutubeArgs(job.options, job.cookieFile != null) else null
         if (fast != null) {
             val result = attempt(job, listener, fast)
-            if (result is EngineResult.Success || result.reason in FINAL) return result
+            if (result is EngineResult.Success || result.reason in FINAL || result.reason in NOT_CLIENT_SPECIFIC) return result
             Log.i(TAG, "${job.taskId}: JS-free YouTube clients failed, retrying with the defaults: $result")
             listener.onProgress(EngineProgress(line = RETRY_DEFAULT_CLIENTS))
         }
@@ -157,6 +157,9 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
 
         /** Failures another attempt with different options cannot fix. */
         private val FINAL = setOf(FailureReason.CANCELED, FailureReason.STORAGE)
+
+        /** YouTube answers these the same for every client (bot check, age gate), so retrying is wasted time. */
+        private val NOT_CLIENT_SPECIFIC = setOf(FailureReason.LOGIN_REQUIRED, FailureReason.COOKIE_EXPIRED, FailureReason.RATE_LIMITED)
         private val SPEED = Regex("""at\s+~?\s*([\d.]+\s*[KMGT]?i?B/s)""")
         private val ALREADY = Regex("""has already been (recorded in the archive|downloaded)""")
     }

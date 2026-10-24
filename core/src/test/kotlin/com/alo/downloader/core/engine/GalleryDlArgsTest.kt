@@ -25,6 +25,7 @@ class GalleryDlArgsTest {
         assertEquals("1.5", args.valueOf("--sleep-request"))
         assertEquals("socks5://h:1", args.valueOf("--proxy"))
         assertTrue("output.mode=pipe" in args)
+        assertTrue("fail fast on HTTP 429", "sleep-429=0" in args)
     }
 
     @Test

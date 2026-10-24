@@ -24,6 +24,9 @@ object GalleryDlArgs {
         opt("-o", "output.mode=pipe")
         opt("-o", "output.progress=false")
         opt("-o", "output.shorten=false")
+        // gallery-dl sleeps 60 s and retries four times on HTTP 429; fail at once instead so the
+        // task reports "rate limited" (and offers a login) rather than sitting still for minutes.
+        opt("-o", "sleep-429=0")
         cookieFile?.let { opt("--cookies", it.absolutePath) }
         if (options.useArchive && archiveFile != null) opt("--download-archive", archiveFile.absolutePath)
         options.proxy?.takeIf { it.isNotBlank() }?.let { opt("--proxy", it) }
