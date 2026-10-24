@@ -41,6 +41,7 @@ import com.alo.downloader.ui.library.LibraryScreen
 import com.alo.downloader.ui.library.openExternally
 import com.alo.downloader.ui.settings.AboutScreen
 import com.alo.downloader.ui.settings.AppearanceSettingsScreen
+import com.alo.downloader.ui.settings.DiagnosticsScreen
 import com.alo.downloader.ui.settings.DownloadSettingsScreen
 import com.alo.downloader.ui.settings.NetworkSettingsScreen
 import com.alo.downloader.ui.settings.SettingsDestination
@@ -62,6 +63,7 @@ object Routes {
     const val TEMPLATES = "settings/templates"
     const val ENGINES = "settings/engines"
     const val ABOUT = "settings/about"
+    const val DIAGNOSTICS = "settings/diagnostics"
     const val LOGIN = "login/{platform}"
     const val TELEGRAM = "settings/telegram"
     const val VIEWER = "viewer/{fileId}"
@@ -164,7 +166,10 @@ fun AloNavHost(pendingLogin: String?, onPendingLoginConsumed: () -> Unit) {
                 ViewerScreen(fileId = entry.arguments?.getLong("fileId") ?: 0L, onBack = { nav.popBackStack() })
             }
             composable(Routes.TEMPLATES) { TemplatesScreen(onBack = { nav.popBackStack() }) }
-            composable(Routes.ABOUT) { AboutScreen(onBack = { nav.popBackStack() }) }
+            composable(Routes.ABOUT) {
+                AboutScreen(onBack = { nav.popBackStack() }, onDiagnostics = { nav.navigate(Routes.DIAGNOSTICS) })
+            }
+            composable(Routes.DIAGNOSTICS) { DiagnosticsScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.LOGIN, arguments = listOf(navArgument("platform") { type = NavType.StringType })) { entry ->
                 val platform = Platform.fromId(entry.arguments?.getString("platform"))
                 WebLoginScreen(platform = platform, onDone = { nav.popBackStack() })

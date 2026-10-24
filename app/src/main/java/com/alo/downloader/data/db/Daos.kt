@@ -45,6 +45,12 @@ interface TaskDao {
     @Query("SELECT COUNT(*) FROM tasks WHERE status IN ('PREPARING','RUNNING')")
     suspend fun runningCount(): Int
 
+    @Query("SELECT * FROM tasks WHERE status = 'FAILED' ORDER BY finishedAt DESC LIMIT :limit")
+    suspend fun recentFailed(limit: Int): List<DownloadTaskEntity>
+
+    @Query("SELECT status, COUNT(*) AS count FROM tasks GROUP BY status")
+    suspend fun statusCounts(): List<StatusCount>
+
     @Query("UPDATE tasks SET status = :status WHERE id = :id")
     suspend fun setStatus(id: String, status: DownloadStatus)
 

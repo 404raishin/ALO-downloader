@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Info
@@ -28,7 +29,7 @@ import com.alo.downloader.ui.home.openLink
 const val SOURCE_URL = "https://github.com/404raishin/ALO-downloader"
 
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onDiagnostics: () -> Unit) {
     val context = LocalContext.current
     SettingsPage(title = stringResource(R.string.settings_about), onBack = onBack) {
         Image(
@@ -43,6 +44,12 @@ fun AboutScreen(onBack: () -> Unit) {
             title = stringResource(R.string.app_name),
             summary = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
             icon = Icons.Outlined.Info,
+        )
+        PreferenceItem(
+            title = stringResource(R.string.diagnostics),
+            summary = stringResource(R.string.diagnostics_summary),
+            icon = Icons.Outlined.BugReport,
+            onClick = onDiagnostics,
         )
         PreferenceItem(
             title = stringResource(R.string.about_source),

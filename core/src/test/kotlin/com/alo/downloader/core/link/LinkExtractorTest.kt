@@ -27,6 +27,18 @@ class LinkExtractorTest {
     }
 
     @Test
+    fun `accepts known platforms without scheme`() {
+        assertEquals(listOf("https://youtu.be/dQw4w9WgXcQ"), LinkExtractor.extractAll("youtu.be/dQw4w9WgXcQ"))
+        assertEquals(
+            listOf("https://m.youtube.com/watch?v=x", "https://instagram.com/p/abc/"),
+            LinkExtractor.extractAll("see m.youtube.com/watch?v=x and instagram.com/p/abc/"),
+        )
+        // Not doubled when the scheme is present, and unknown bare domains are left alone.
+        assertEquals(listOf("https://x.com/u/status/1"), LinkExtractor.extractAll("https://x.com/u/status/1"))
+        assertEquals(emptyList<String>(), LinkExtractor.extractAll("example.org/page and me@x.com/a"))
+    }
+
+    @Test
     fun `rejects non links`() {
         assertNull(LinkExtractor.extractFirst("hello world"))
         assertNull(LinkExtractor.extractFirst(null))

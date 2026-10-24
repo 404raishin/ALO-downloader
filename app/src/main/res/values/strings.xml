@@ -312,4 +312,9 @@
     <string name="pref_channel_limit">Posts per Telegram channel</string>
     <string name="pref_channel_limit_value">Newest %1$d posts with media</string>
     <string name="engine_start_failed">Could not start: %1$s</string>
+    <string name="diagnostics">Diagnostics</string>
+    <string name="diagnostics_summary">Engine status and recent errors, for bug reports</string>
+    <string name="diagnostics_intro">If downloads do not work, copy this report and include it in your bug report. It contains your device model and the links that failed.</string>
+    <string name="diagnostics_copy">Copy report</string>
+    <string name="diagnostics_collecting">Collecting… starting the engines can take a minute the first time.</string>
 </resources>

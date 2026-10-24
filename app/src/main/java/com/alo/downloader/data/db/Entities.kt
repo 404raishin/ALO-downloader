@@ -86,3 +86,6 @@ data class TaskWithFiles(
     @androidx.room.Relation(parentColumn = "id", entityColumn = "taskId")
     val files: List<DownloadedFileEntity>,
 )
+
+/** Row of [TaskDao.statusCounts]. */
+data class StatusCount(val status: DownloadStatus, val count: Int)

@@ -308,4 +308,9 @@
     <string name="pref_channel_limit">每个 Telegram 频道的帖子数</string>
     <string name="pref_channel_limit_value">最新 %1$d 条含媒体的帖子</string>
     <string name="engine_start_failed">无法启动：%1$s</string>
+    <string name="diagnostics">诊断信息</string>
+    <string name="diagnostics_summary">引擎状态和最近的错误，用于反馈问题</string>
+    <string name="diagnostics_intro">如果下载无法使用，请复制此报告并附在问题反馈中。报告包含你的设备型号和失败的链接。</string>
+    <string name="diagnostics_copy">复制报告</string>
+    <string name="diagnostics_collecting">正在收集…首次启动引擎可能需要一分钟。</string>
 </resources>
