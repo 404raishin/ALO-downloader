@@ -5,6 +5,7 @@ import android.util.Log
 import com.yausername.aria2c.Aria2c
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -41,7 +42,25 @@ class YtDlpRuntime @Inject constructor(@ApplicationContext private val context: 
         }
     }
 
-    fun version(): String? = runCatching { YoutubeDL.getInstance().version(context) }.getOrNull()
+    @Volatile private var reportedVersion: String? = null
+
+    /**
+     * Version of the yt-dlp in use. youtubedl-android only records it after an in-app update,
+     * so for the bundled copy ask yt-dlp itself once and cache the answer.
+     */
+    fun version(): String? {
+        runCatching { YoutubeDL.getInstance().version(context) }.getOrNull()?.takeIf { it.isNotBlank() }?.let { return it }
+        reportedVersion?.let { return it }
+        if (!isReady) return null
+        return runCatching {
+            YoutubeDL.getInstance().execute(YoutubeDLRequest(emptyList<String>()).addOption("--version")).out.trim()
+        }.getOrNull()?.lineSequence()?.firstOrNull()?.takeIf { it.isNotBlank() }?.also { reportedVersion = it }
+    }
+
+    /** Forget the cached version after the binary was replaced. */
+    fun invalidateVersion() {
+        reportedVersion = null
+    }
 
     private companion object { const val TAG = "YtDlpRuntime" }
 }

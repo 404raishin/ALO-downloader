@@ -33,7 +33,9 @@ class EngineInstrumentedTest {
     @Test
     fun ytDlpRuntimeStarts() = runBlocking {
         assertTrue("init failed: ${ytRuntime.initError}", ytRuntime.ensureReady())
-        assertNotNull(ytRuntime.version())
+        val version = ytRuntime.version()
+        assertNotNull("yt-dlp did not report a version", version)
+        assertTrue(version, version!!.matches(Regex("""\d{4}\.\d{2}\.\d{2}.*""")))
     }
 
     /** Regression: starting Chaquopy must not break yt-dlp's separate Python process. */

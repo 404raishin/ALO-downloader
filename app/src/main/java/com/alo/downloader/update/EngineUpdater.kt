@@ -61,6 +61,7 @@ class EngineUpdater @Inject constructor(
         if (!ytDlp.ensureReady()) throw IOException(ytDlp.initError ?: "yt-dlp is not available")
         val target = if (channel == UpdateChannel.NIGHTLY) YoutubeDL.UpdateChannel._NIGHTLY else YoutubeDL.UpdateChannel._STABLE
         val status = YoutubeDL.getInstance().updateYoutubeDL(context, target)
+        ytDlp.invalidateVersion()
         val version = ytDlp.version()
         if (status == YoutubeDL.UpdateStatus.DONE) UpdateResult.Updated(version ?: "?") else UpdateResult.UpToDate(version)
     }
