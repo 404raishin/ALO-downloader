@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
@@ -49,6 +50,7 @@ import java.util.Date
 fun AccountsScreen(
     onBack: () -> Unit,
     onLogin: (Platform) -> Unit,
+    onTelegram: () -> Unit,
     viewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -90,6 +92,12 @@ fun AccountsScreen(
             summary = stringResource(R.string.cookies_import_summary),
             icon = Icons.Outlined.FileOpen,
             onClick = { importLauncher.launch(arrayOf("text/plain", "text/*", "application/octet-stream", "*/*")) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.telegram_account),
+            summary = stringResource(R.string.telegram_account_summary),
+            icon = Icons.AutoMirrored.Outlined.Send,
+            onClick = onTelegram,
         )
         PreferenceCategory(stringResource(R.string.accounts_platforms))
         accounts.forEach { status ->

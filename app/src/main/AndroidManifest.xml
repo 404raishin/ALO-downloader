@@ -48,6 +48,7 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/share_target_label"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:launchMode="singleTask"
             android:taskAffinity="com.alo.downloader.share"
             android:theme="@style/Theme.ALO.Translucent">
@@ -71,6 +72,32 @@
         <receiver
             android:name=".download.NotificationActionReceiver"
             android:exported="false" />
+
+        <service
+            android:name=".shortcut.QuickDownloadTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_notification"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="false" />
+        </service>
+
+        <receiver
+            android:name=".shortcut.DownloadWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/download_widget_info" />
+        </receiver>
 
         <!-- WorkManager is initialised on demand with the Hilt worker factory. -->
         <provider

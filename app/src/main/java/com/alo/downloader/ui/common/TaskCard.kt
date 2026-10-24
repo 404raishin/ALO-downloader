@@ -265,7 +265,7 @@ fun ErrorPanel(
             Spacer(Modifier.height(4.dp))
             Text(attempts, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f))
         }
-        if (reason.needsLogin && platform.supportsWebLogin) {
+        if (reason.needsLogin && (platform.supportsWebLogin || platform == Platform.TELEGRAM)) {
             Spacer(Modifier.height(10.dp))
             FilledTonalButton(onClick = { onLogin(platform) }) {
                 Icon(Icons.AutoMirrored.Outlined.Login, null, Modifier.size(18.dp))

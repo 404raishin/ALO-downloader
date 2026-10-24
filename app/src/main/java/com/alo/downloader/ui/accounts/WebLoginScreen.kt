@@ -97,7 +97,6 @@ fun WebLoginScreen(platform: Platform, onDone: () -> Unit, viewModel: AccountsVi
                     WebView(ctx).apply {
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        settings.databaseEnabled = true
                         settings.loadWithOverviewMode = true
                         settings.useWideViewPort = true
                         // Some sign-in pages refuse embedded browsers that announce themselves.

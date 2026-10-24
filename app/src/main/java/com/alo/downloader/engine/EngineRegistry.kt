@@ -6,6 +6,7 @@ import com.alo.downloader.core.model.Platform
 import com.alo.downloader.core.router.EngineRouter
 import com.alo.downloader.engine.gallerydl.GalleryDlEngine
 import com.alo.downloader.engine.ytdlp.YtDlpEngine
+import com.alo.downloader.telegram.TelegramEngine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,10 +15,12 @@ import javax.inject.Singleton
 class EngineRegistry @Inject constructor(
     ytDlp: YtDlpEngine,
     galleryDl: GalleryDlEngine,
+    telegram: TelegramEngine,
 ) {
     private val engines: Map<EngineType, DownloadEngine> = mapOf(
         EngineType.YT_DLP to ytDlp,
         EngineType.GALLERY_DL to galleryDl,
+        EngineType.TELEGRAM to telegram,
     )
 
     fun get(type: EngineType): DownloadEngine? = engines[type]

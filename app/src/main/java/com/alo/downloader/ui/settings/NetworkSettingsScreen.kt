@@ -9,7 +9,7 @@ import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Wifi
-import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.automirrored.outlined.AltRoute
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -47,7 +47,7 @@ fun NetworkSettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hil
             summary = stringResource(R.string.pref_engine_fallback_summary),
             checked = s.engineFallback,
             onCheckedChange = { viewModel.set(SettingKeys.engineFallback, it) },
-            icon = Icons.Outlined.AltRoute,
+            icon = Icons.AutoMirrored.Outlined.AltRoute,
         )
 
         PreferenceCategory(stringResource(R.string.pref_cat_connection))

@@ -3,6 +3,7 @@ package com.alo.downloader.download
 import android.content.Context
 import android.util.Log
 import androidx.hilt.work.HiltWorker
+import com.alo.downloader.shortcut.DownloadWidgetProvider
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
@@ -26,8 +27,13 @@ class DownloadQueueWorker @AssistedInject constructor(
             // as a regular worker instead of failing the queue.
             Log.w("DownloadQueueWorker", "foreground not allowed", e)
         }
-        executor.runQueue { active ->
-            runCatching { setForeground(notifier.foregroundInfo(active)) }
+        try {
+            executor.runQueue { active ->
+                runCatching { setForeground(notifier.foregroundInfo(active)) }
+                DownloadWidgetProvider.update(applicationContext, active)
+            }
+        } finally {
+            DownloadWidgetProvider.update(applicationContext, 0)
         }
         return Result.success()
     }

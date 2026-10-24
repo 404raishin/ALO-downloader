@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.alo.downloader.R
@@ -45,6 +46,12 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             summary = stringResource(R.string.settings_templates_summary),
             icon = Icons.Outlined.Code,
             onClick = { onNavigate(SettingsDestination.TEMPLATES) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_engines),
+            summary = stringResource(R.string.settings_engines_summary),
+            icon = Icons.Outlined.SystemUpdate,
+            onClick = { onNavigate(SettingsDestination.ENGINES) },
         )
         PreferenceItem(
             title = stringResource(R.string.settings_about),

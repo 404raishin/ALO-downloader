@@ -45,7 +45,11 @@ import com.alo.downloader.ui.settings.DownloadSettingsScreen
 import com.alo.downloader.ui.settings.NetworkSettingsScreen
 import com.alo.downloader.ui.settings.SettingsDestination
 import com.alo.downloader.ui.settings.SettingsScreen
+import com.alo.downloader.data.db.DownloadedFileEntity
+import com.alo.downloader.ui.settings.EnginesScreen
+import com.alo.downloader.ui.telegram.TelegramLoginScreen
 import com.alo.downloader.ui.templates.TemplatesScreen
+import com.alo.downloader.ui.viewer.ViewerScreen
 
 object Routes {
     const val HOME = "home"
@@ -59,6 +63,10 @@ object Routes {
     const val ENGINES = "settings/engines"
     const val ABOUT = "settings/about"
     const val LOGIN = "login/{platform}"
+    const val TELEGRAM = "settings/telegram"
+    const val VIEWER = "viewer/{fileId}"
+
+    fun viewer(fileId: Long) = "viewer/$fileId"
 
     fun login(platform: Platform) = "login/${platform.id}"
 }
@@ -81,11 +89,14 @@ fun AloNavHost(pendingLogin: String?, onPendingLoginConsumed: () -> Unit) {
 
     LaunchedEffect(pendingLogin) {
         if (pendingLogin != null) {
-            nav.navigate(Routes.login(Platform.fromId(pendingLogin)))
+            val platform = Platform.fromId(pendingLogin)
+            nav.navigate(if (platform == Platform.TELEGRAM) Routes.TELEGRAM else Routes.login(platform))
             onPendingLoginConsumed()
         }
     }
-    val login: (Platform) -> Unit = { nav.navigate(Routes.login(it)) }
+    val login: (Platform) -> Unit = {
+        nav.navigate(if (it == Platform.TELEGRAM) Routes.TELEGRAM else Routes.login(it))
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -112,7 +123,17 @@ fun AloNavHost(pendingLogin: String?, onPendingLoginConsumed: () -> Unit) {
         ) {
             composable(Routes.HOME) { HomeScreen(onLogin = login) }
             composable(Routes.LIBRARY) {
-                LibraryScreen(onLogin = login, onOpenItem = { openExternally(context, it) })
+                LibraryScreen(
+                    onLogin = login,
+                    onOpenItem = { item ->
+                        val first = item.files.firstOrNull()
+                        if (first != null && first.isViewable()) nav.navigate(Routes.viewer(first.id)) else openExternally(context, item)
+                    },
+                    onOpenFile = { file ->
+                        if (file.isViewable()) nav.navigate(Routes.viewer(file.id))
+                        else openExternally(context, file)
+                    },
+                )
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(onNavigate = { dest ->
@@ -134,7 +155,14 @@ fun AloNavHost(pendingLogin: String?, onPendingLoginConsumed: () -> Unit) {
                 DownloadSettingsScreen(onBack = { nav.popBackStack() }, onOpenTemplates = { nav.navigate(Routes.TEMPLATES) })
             }
             composable(Routes.NETWORK) { NetworkSettingsScreen(onBack = { nav.popBackStack() }) }
-            composable(Routes.ACCOUNTS) { AccountsScreen(onBack = { nav.popBackStack() }, onLogin = login) }
+            composable(Routes.ACCOUNTS) {
+                AccountsScreen(onBack = { nav.popBackStack() }, onLogin = login, onTelegram = { nav.navigate(Routes.TELEGRAM) })
+            }
+            composable(Routes.TELEGRAM) { TelegramLoginScreen(onBack = { nav.popBackStack() }) }
+            composable(Routes.ENGINES) { EnginesScreen(onBack = { nav.popBackStack() }) }
+            composable(Routes.VIEWER, arguments = listOf(navArgument("fileId") { type = NavType.LongType })) { entry ->
+                ViewerScreen(fileId = entry.arguments?.getLong("fileId") ?: 0L, onBack = { nav.popBackStack() })
+            }
             composable(Routes.TEMPLATES) { TemplatesScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.ABOUT) { AboutScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.LOGIN, arguments = listOf(navArgument("platform") { type = NavType.StringType })) { entry ->
@@ -144,6 +172,9 @@ fun AloNavHost(pendingLogin: String?, onPendingLoginConsumed: () -> Unit) {
         }
     }
 }
+
+private fun DownloadedFileEntity.isViewable() =
+    mimeType.startsWith("video/") || mimeType.startsWith("audio/") || mimeType.startsWith("image/")
 
 private fun NavHostController.navigateTopLevel(route: String) {
     navigate(route) {

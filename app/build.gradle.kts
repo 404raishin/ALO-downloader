@@ -114,6 +114,7 @@ kotlin {
         freeCompilerArgs.addAll(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
+            "-Xannotation-default-target=param-property",
         )
     }
 }
@@ -160,10 +161,14 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
+    implementation(libs.coil.video)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
     implementation(libs.youtubedl.library)
     implementation(libs.youtubedl.ffmpeg)
     implementation(libs.youtubedl.aria2c)
+    implementation(libs.tdl.coroutines)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)

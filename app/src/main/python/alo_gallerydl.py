@@ -16,19 +16,20 @@ _lock = threading.Lock()
 
 
 def _use_updated_wheel(wheel_dir):
-    """Put an in-app updated gallery-dl wheel in front of the bundled copy."""
-    if not wheel_dir or not os.path.isdir(wheel_dir):
+    """Puts an in-app updated gallery-dl wheel in front of the bundled copy (or removes it)."""
+    if not wheel_dir:
         return
-    wheels = sorted(f for f in os.listdir(wheel_dir) if f.startswith("gallery_dl-") and f.endswith(".whl"))
-    if not wheels:
+    wheels = []
+    if os.path.isdir(wheel_dir):
+        wheels = sorted(f for f in os.listdir(wheel_dir) if f.startswith("gallery_dl-") and f.endswith(".whl"))
+    wanted = [os.path.join(wheel_dir, wheels[-1])] if wheels else []
+    current = [p for p in sys.path if p.startswith(wheel_dir)]
+    if current == wanted:
         return
-    path = os.path.join(wheel_dir, wheels[-1])
-    if path not in sys.path:
-        # Drop previously inserted wheels so the newest one wins without restarting.
-        sys.path[:] = [p for p in sys.path if not (p.startswith(wheel_dir) and p.endswith(".whl"))]
-        sys.path.insert(0, path)
-        for name in [m for m in sys.modules if m == "gallery_dl" or m.startswith("gallery_dl.")]:
-            del sys.modules[name]
+    sys.path[:] = wanted + [p for p in sys.path if not p.startswith(wheel_dir)]
+    # Forget the old modules so the next import picks up the new location.
+    for name in [m for m in sys.modules if m == "gallery_dl" or m.startswith("gallery_dl.")]:
+        del sys.modules[name]
 
 
 def version(wheel_dir=None):

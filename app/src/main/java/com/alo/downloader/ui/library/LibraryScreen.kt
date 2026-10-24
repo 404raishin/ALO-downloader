@@ -1,6 +1,24 @@
 package com.alo.downloader.ui.library
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.alo.downloader.data.db.DownloadedFileEntity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,6 +72,7 @@ import com.alo.downloader.ui.home.openLink
 fun LibraryScreen(
     onLogin: (Platform) -> Unit,
     onOpenItem: (TaskWithFiles) -> Unit,
+    onOpenFile: (DownloadedFileEntity) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -63,6 +82,7 @@ fun LibraryScreen(
     val platform by viewModel.platform.collectAsStateWithLifecycle()
     val platforms by viewModel.platforms.collectAsStateWithLifecycle()
     var searching by remember { mutableStateOf(false) }
+    var grid by rememberSaveable { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<String?>(null) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -82,6 +102,12 @@ fun LibraryScreen(
             LargeTopAppBar(
                 title = { Text(stringResource(R.string.nav_library)) },
                 actions = {
+                    IconButton(onClick = { grid = !grid }) {
+                        Icon(
+                            if (grid) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
+                            stringResource(if (grid) R.string.view_list else R.string.view_grid),
+                        )
+                    }
                     IconButton(onClick = { searching = !searching; if (!searching) viewModel.query.value = "" }) {
                         Icon(Icons.Outlined.Search, stringResource(R.string.search))
                     }
@@ -93,43 +119,23 @@ fun LibraryScreen(
             )
         },
     ) { padding ->
+        if (grid) {
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                LibraryFilters(viewModel, searching, query, filter, platform, platforms)
+                val files = items.flatMap { item -> item.files.filter { it.matches(filter) } }
+                if (files.isEmpty()) {
+                    EmptyState(Icons.Outlined.VideoLibrary, stringResource(R.string.library_empty_title), stringResource(R.string.library_empty_body))
+                } else {
+                    MediaGrid(files, onOpenFile)
+                }
+            }
+            return@Scaffold
+        }
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (searching) {
-                item {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { viewModel.query.value = it },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        placeholder = { Text(stringResource(R.string.search_history)) },
-                        leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                        trailingIcon = {
-                            if (query.isNotEmpty()) IconButton(onClick = { viewModel.query.value = "" }) { Icon(Icons.Rounded.Close, null) }
-                        },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.extraLarge,
-                    )
-                }
-            }
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
-                ) {
-                    items(MediaFilter.entries.toList()) { f ->
-                        FilterChip(selected = filter == f, onClick = { viewModel.filter.value = f }, label = { Text(filterLabel(f)) })
-                    }
-                    items(platforms) { p ->
-                        FilterChip(
-                            selected = platform == p,
-                            onClick = { viewModel.platform.value = if (platform == p) null else p },
-                            label = { Text(p.displayName) },
-                        )
-                    }
-                }
-            }
+            item { LibraryFilters(viewModel, searching, query, filter, platform, platforms) }
             if (items.isEmpty()) {
                 item {
                     EmptyState(Icons.Outlined.VideoLibrary, stringResource(R.string.library_empty_title), stringResource(R.string.library_empty_body))
@@ -173,6 +179,90 @@ fun LibraryScreen(
 }
 
 @Composable
+private fun LibraryFilters(
+    viewModel: LibraryViewModel,
+    searching: Boolean,
+    query: String,
+    filter: MediaFilter,
+    platform: Platform?,
+    platforms: List<Platform>,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (searching) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { viewModel.query.value = it },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                placeholder = { Text(stringResource(R.string.search_history)) },
+                leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) IconButton(onClick = { viewModel.query.value = "" }) { Icon(Icons.Rounded.Close, null) }
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.extraLarge,
+            )
+        }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+            items(MediaFilter.entries.toList()) { f ->
+                FilterChip(selected = filter == f, onClick = { viewModel.filter.value = f }, label = { Text(filterLabel(f)) })
+            }
+            items(platforms) { p ->
+                FilterChip(
+                    selected = platform == p,
+                    onClick = { viewModel.platform.value = if (platform == p) null else p },
+                    label = { Text(p.displayName) },
+                )
+            }
+        }
+    }
+}
+
+private fun DownloadedFileEntity.matches(filter: MediaFilter) = when (filter) {
+    MediaFilter.ALL -> true
+    MediaFilter.VIDEO -> mimeType.startsWith("video/")
+    MediaFilter.AUDIO -> mimeType.startsWith("audio/")
+    MediaFilter.IMAGE -> mimeType.startsWith("image/")
+}
+
+@Composable
+private fun MediaGrid(files: List<DownloadedFileEntity>, onOpen: (DownloadedFileEntity) -> Unit) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(112.dp),
+        contentPadding = PaddingValues(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        gridItems(files, key = { it.id }) { file ->
+            Box(
+                Modifier
+                    .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    .clickable { onOpen(file) },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (file.mimeType.startsWith("audio/")) {
+                    Icon(Icons.Outlined.MusicNote, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    AsyncImage(model = file.uri, contentDescription = file.displayName, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                }
+                if (file.mimeType.startsWith("video/")) {
+                    Icon(
+                        Icons.Filled.PlayCircle, null,
+                        Modifier.align(Alignment.BottomStart).padding(6.dp).size(22.dp),
+                        tint = androidx.compose.ui.graphics.Color.White,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun filterLabel(f: MediaFilter) = when (f) {
     MediaFilter.ALL -> stringResource(R.string.filter_all)
     MediaFilter.VIDEO -> stringResource(R.string.filter_video)
@@ -182,7 +272,10 @@ private fun filterLabel(f: MediaFilter) = when (f) {
 
 /** Opens the first file of a finished task in another app. */
 fun openExternally(context: android.content.Context, item: TaskWithFiles) {
-    val f = item.files.firstOrNull() ?: return
+    item.files.firstOrNull()?.let { openExternally(context, it) }
+}
+
+fun openExternally(context: android.content.Context, f: DownloadedFileEntity) {
     runCatching {
         context.startActivity(
             android.content.Intent(android.content.Intent.ACTION_VIEW)
