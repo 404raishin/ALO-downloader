@@ -123,6 +123,8 @@ python3 tools/check_strings.py  # English / Chinese strings stay in sync
 emulator and runs the instrumented tests, which download the tiny fixtures in `testdata/`
 with the real bundled yt-dlp, ffmpeg and gallery-dl. Pushing a tag `v*` additionally
 builds `assembleRelease` and creates a GitHub Release with per-ABI APKs and `SHA256SUMS.txt`.
+You can also publish a release without pushing a tag: **Actions → Build → Run workflow**, enter
+a tag such as `v0.1.0-beta.2` in *release_tag* (a `-` in the tag marks it as a pre-release).
 
 Release signing uses these repository secrets (without them the release APK is signed with
 the debug key so it is still installable):
