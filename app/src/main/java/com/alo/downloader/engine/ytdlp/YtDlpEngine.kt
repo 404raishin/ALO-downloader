@@ -16,8 +16,10 @@ import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,9 +45,17 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
         var title: String? = null
         var lastMetaCheck = 0L
 
-        return withContext(Dispatchers.IO) {
+        return coroutineScope {
+            // execute() blocks; kill the yt-dlp process as soon as the coroutine is cancelled.
+            val watcher = launch(Dispatchers.Default) {
+                try {
+                    awaitCancellation()
+                } finally {
+                    YoutubeDL.getInstance().destroyProcessById(job.taskId)
+                }
+            }
             try {
-                val response = runInterruptible {
+                val response = runInterruptible(Dispatchers.IO) {
                     YoutubeDL.getInstance().execute(request, job.taskId, false) { progress, eta, line ->
                         log.add(line)
                         val now = System.currentTimeMillis()
@@ -89,6 +99,8 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
                 EngineResult.Failure(ErrorClassifier.toError(text, type, job.cookieFile != null))
             } catch (e: Exception) {
                 EngineResult.Failure(DownloadError(FailureReason.UNKNOWN, e.message ?: e.toString(), type))
+            } finally {
+                watcher.cancel()
             }
         }
     }

@@ -7,8 +7,8 @@ import com.alo.downloader.core.engine.DownloadEngine
 import com.alo.downloader.core.engine.EngineJob
 import com.alo.downloader.core.engine.EngineProgress
 import com.alo.downloader.core.engine.EngineResult
+import com.alo.downloader.core.engine.FallbackRunner
 import com.alo.downloader.core.engine.ProgressListener
-import com.alo.downloader.core.model.DownloadError
 import com.alo.downloader.core.model.DownloadOptionsCodec
 import com.alo.downloader.core.model.DownloadStatus
 import com.alo.downloader.core.model.EngineType
@@ -184,51 +184,46 @@ class DownloadExecutor @Inject constructor(
             }
         }
         val listener = ProgressListener { progress.value = it }
-        val errors = mutableListOf<DownloadError>()
-        val attempts = mutableListOf<String>()
         var auth: TaskCredentials.Prepared? = null
 
         try {
             auth = credentials.prepare(platform, File(workDir, ".meta"))
-            for (engine in plan) {
-                current = current.copy(status = DownloadStatus.RUNNING, engine = engine.type.id)
-                taskDao.update(current)
-                activeEngines[id] = engine
-                val job = EngineJob(
-                    taskId = id,
-                    url = task.url,
-                    platform = platform,
-                    workDir = workDir,
-                    options = options,
-                    cookieFile = auth.cookieFile,
-                    archiveFile = storage.archiveFile(archiveName(engine.type)),
-                )
-                when (val result = engine.download(job, listener)) {
-                    is EngineResult.Success -> {
-                        attempts += "${engine.type.displayName} ✓"
-                        reporter.cancel()
-                        finishSuccess(current, result, platform, settings, workDir, attempts)
-                        return@coroutineScope
-                    }
-                    is EngineResult.Failure -> {
-                        attempts += "${engine.type.displayName} ✗"
-                        errors += result.error
-                        Log.w(TAG, "$id failed with ${engine.type}: ${result.error}")
-                        if (result.error.reason == FailureReason.CANCELED) break
-                        if (!settings.engineFallback) break
-                    }
-                }
-            }
+            val cookieFile = auth.cookieFile
+            val outcome = FallbackRunner.run(
+                engines = plan,
+                jobFor = { engine ->
+                    EngineJob(
+                        taskId = id,
+                        url = task.url,
+                        platform = platform,
+                        workDir = workDir,
+                        options = options,
+                        cookieFile = cookieFile,
+                        archiveFile = storage.archiveFile(archiveName(engine.type)),
+                    )
+                },
+                listener = listener,
+                onAttempt = { engine ->
+                    activeEngines[id] = engine
+                    current = current.copy(status = DownloadStatus.RUNNING, engine = engine.type.id)
+                    taskDao.update(current)
+                },
+            )
             reporter.cancel()
+            val result = outcome.result
+            if (result is EngineResult.Success) {
+                finishSuccess(current, result, platform, settings, workDir, outcome.attempts)
+                return@coroutineScope
+            }
             val latest = taskDao.get(id)
             if (latest == null || !latest.status.isActive) return@coroutineScope // paused / canceled by the user
-            val error = DownloadError.mostRelevant(errors)
-                ?: DownloadError(FailureReason.ENGINE_UNAVAILABLE, "No engine can handle this link")
+            val error = (result as EngineResult.Failure).error
+            Log.w(TAG, "$id failed: ${outcome.attempts} $error")
             val failed = latest.copy(
                 status = DownloadStatus.FAILED,
                 errorReason = error.reason,
                 errorMessage = error.message,
-                attempts = attempts.joinToString(" → "),
+                attempts = outcome.attempts.joinToString(" → "),
                 finishedAt = System.currentTimeMillis(),
             )
             taskDao.update(failed)

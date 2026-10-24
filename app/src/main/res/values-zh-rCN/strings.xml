@@ -261,4 +261,9 @@
     <string name="about_credits">基于</string>
     <string name="about_credits_summary">yt-dlp、gallery-dl、youtubedl-android、FFmpeg、aria2、Chaquopy、TDLib</string>
     <string name="disclaimer">请仅下载你拥有或有权访问并保存的内容。你需要自行遵守所用网站的条款以及所在地的版权法律。</string>
+    <string name="pref_cat_storage">存储</string>
+    <string name="pref_location">下载位置</string>
+    <string name="pref_location_reset">使用默认文件夹</string>
+    <string name="pref_platform_folders">按平台分文件夹</string>
+    <string name="pref_platform_folders_summary">ALO/Instagram、ALO/X、ALO/YouTube…</string>
 </resources>

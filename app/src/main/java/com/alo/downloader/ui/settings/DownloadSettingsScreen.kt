@@ -1,6 +1,13 @@
 package com.alo.downloader.ui.settings
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.FolderOff
+import androidx.documentfile.provider.DocumentFile
 import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Bookmarks
@@ -185,6 +192,33 @@ fun DownloadSettingsScreen(
             placeholder = "sponsor,selfpromo,interaction,intro,outro,preview,music_offtopic,filler",
             enabled = s.sponsorBlock != SponsorBlockMode.OFF,
             icon = Icons.Outlined.FastForward,
+        )
+
+        PreferenceCategory(stringResource(R.string.pref_cat_storage))
+        val treeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            if (uri != null) viewModel.setDownloadTree(uri)
+        }
+        val treeName = s.customTreeUri?.let { DocumentFile.fromTreeUri(context, Uri.parse(it))?.name }
+        PreferenceItem(
+            title = stringResource(R.string.pref_location),
+            summary = treeName ?: "Download/ALO",
+            icon = Icons.Outlined.Folder,
+            onClick = { treeLauncher.launch(null) },
+        )
+        if (s.customTreeUri != null) {
+            PreferenceItem(
+                title = stringResource(R.string.pref_location_reset),
+                summary = "Download/ALO",
+                icon = Icons.Outlined.FolderOff,
+                onClick = { viewModel.setDownloadTree(null) },
+            )
+        }
+        SwitchPreference(
+            title = stringResource(R.string.pref_platform_folders),
+            summary = stringResource(R.string.pref_platform_folders_summary),
+            checked = s.perPlatformFolders,
+            onCheckedChange = { viewModel.set(SettingKeys.perPlatformFolders, it) },
+            icon = Icons.Outlined.CreateNewFolder,
         )
 
         PreferenceCategory(stringResource(R.string.pref_cat_files))

@@ -265,4 +265,9 @@
     <string name="about_credits">Built on</string>
     <string name="about_credits_summary">yt-dlp, gallery-dl, youtubedl-android, FFmpeg, aria2, Chaquopy, TDLib</string>
     <string name="disclaimer">Only download content you own or have permission to access and save. You are responsible for complying with the terms of the sites you use and with copyright law where you live.</string>
+    <string name="pref_cat_storage">Storage</string>
+    <string name="pref_location">Download location</string>
+    <string name="pref_location_reset">Use the default folder</string>
+    <string name="pref_platform_folders">Folder per platform</string>
+    <string name="pref_platform_folders_summary">ALO/Instagram, ALO/X, ALO/YouTube…</string>
 </resources>

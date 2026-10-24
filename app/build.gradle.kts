@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.chaquopy)
 }
 
 val keystoreProps = Properties().apply {
@@ -92,6 +93,18 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        // 3.11 is the newest Python Chaquopy still ships for 32-bit ARM.
+        version = "3.11"
+        pip {
+            install("gallery-dl==1.32.17")
+            // SOCKS proxy support for gallery-dl's requests session.
+            install("PySocks==1.7.1")
+        }
     }
 }
 
