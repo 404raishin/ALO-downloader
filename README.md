@@ -66,6 +66,9 @@ extended to many platforms. All code, the name and the icon are original.
 
 ### Telegram
 - Public channel posts: parsed from Telegram's public web preview, no account needed
+- Whole channels (`t.me/name`): the newest posts with media (limit in Settings → Download);
+  via the web preview without an account, or via TDLib when logged in
+- Invite links (`t.me/+…`) for chats your account already belongs to (ALO never joins chats)
 - Private channels and groups, documents and large files: TDLib user login with **your own**
   API ID / hash from [my.telegram.org](https://my.telegram.org/apps); the local TDLib
   database is encrypted with a random key stored in the encrypted vault
@@ -110,12 +113,15 @@ uses it at build time to `pip install` gallery-dl into the APK).
 ```bash
 ./gradlew :core:test          # fast JVM unit tests (engine args, router, cookies, queue, …)
 ./gradlew assembleDebug       # APKs in app/build/outputs/apk/debug/
+./gradlew connectedDebugAndroidTest   # on a device/emulator: real engines, storage, UI smoke test
 python3 tools/check_strings.py  # English / Chinese strings stay in sync
 ```
 
 ### CI
 `.github/workflows/build.yml` runs on every push and pull request: string check, unit tests,
-`assembleDebug`, and uploads the debug APKs as an artifact. Pushing a tag `v*` additionally
+`assembleDebug`, and uploads the debug APKs as an artifact. A second job boots an API 34
+emulator and runs the instrumented tests, which download the tiny fixtures in `testdata/`
+with the real bundled yt-dlp, ffmpeg and gallery-dl. Pushing a tag `v*` additionally
 builds `assembleRelease` and creates a GitHub Release with per-ABI APKs and `SHA256SUMS.txt`.
 
 Release signing uses these repository secrets (without them the release APK is signed with
@@ -226,18 +232,20 @@ options* to use only your arguments for format selection and post-processing.
 - Unit tests for the core modules (engine argument builders, error classifier, router,
   fallback runner, cookies, download queue planner, Telegram parsers, …)
 
+- Instrumented tests on an emulator in CI (engines, MediaStore, encrypted vault, UI smoke test)
+- Pause/resume keeps partial files: yt-dlp and gallery-dl continue their `.part` files, TDLib
+  resumes from its cache, public Telegram media resumes with HTTP Range
+
 ### Not done yet (TODO)
-- Downloading a whole Telegram channel or joining via invite links (single posts only)
 - Parallel gallery-dl jobs (one embedded interpreter, so gallery-dl tasks run one at a time;
   yt-dlp and Telegram tasks still run in parallel)
-- Byte-level resume for gallery-dl and Telegram (pause stops the task; resume restarts the
-  current file, and the archive skips files already saved)
+- Joining Telegram chats from invite links (deliberately left out; join in Telegram first)
 - F-Droid submission (fastlane metadata is included; see known issues)
-- Instrumented/UI tests (only JVM unit tests exist)
 
 ### Known issues
-- **Not yet verified on a physical device.** Everything compiles and the core logic is unit
-  tested, but the end-to-end download flows have only been checked through CI builds.
+- **Not yet verified on a physical phone.** The engines, storage and UI are exercised on a CI
+  emulator with local fixtures, but real sites (Instagram, X, YouTube, Telegram) and the share
+  flow from other apps have not been tested by hand.
 - APKs are large because they embed two Python runtimes (youtubedl-android's and
   Chaquopy's), FFmpeg, aria2c and TDLib. Install the per-ABI APK, not the universal one.
 - Google sign-in (YouTube) usually refuses embedded browsers; use cookies.txt import.

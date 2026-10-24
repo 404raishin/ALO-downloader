@@ -19,6 +19,7 @@ class DownloadOptionsCodecTest {
             rateLimit = "500K",
             concurrentFragments = 4,
             requestSleepSeconds = 1.5,
+            maxItems = 25,
             customArgs = listOf("--embed-chapters", "-o", "%(id)s.%(ext)s"),
             customReplacesDefaults = true,
             customArgsEngine = EngineType.GALLERY_DL,

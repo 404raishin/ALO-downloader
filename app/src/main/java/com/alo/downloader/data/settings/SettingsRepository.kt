@@ -74,6 +74,8 @@ data class AppSettings(
     val useAria2c: Boolean = false,
     val forceIpv4: Boolean = false,
     val requestSleepSeconds: Double = 1.0,
+    /** How many recent posts to fetch when a whole Telegram channel is shared. */
+    val channelItemLimit: Int = 30,
     // Engines
     val engineFallback: Boolean = true,
     val updateChannel: UpdateChannel = UpdateChannel.STABLE,
@@ -109,6 +111,7 @@ data class AppSettings(
         useAria2c = useAria2c,
         forceIpv4 = forceIpv4,
         requestSleepSeconds = requestSleepSeconds,
+        maxItems = channelItemLimit,
     )
 }
 
@@ -152,6 +155,7 @@ object SettingKeys {
     val useAria2c = booleanPreferencesKey("use_aria2c")
     val forceIpv4 = booleanPreferencesKey("force_ipv4")
     val requestSleepSeconds = doublePreferencesKey("request_sleep_seconds")
+    val channelItemLimit = intPreferencesKey("channel_item_limit")
     val engineFallback = booleanPreferencesKey("engine_fallback")
     val updateChannel = stringPreferencesKey("update_channel")
     val autoUpdateEngines = booleanPreferencesKey("auto_update_engines")
@@ -216,6 +220,7 @@ class SettingsRepository @Inject constructor(@ApplicationContext context: Contex
             useAria2c = this[k.useAria2c] ?: d.useAria2c,
             forceIpv4 = this[k.forceIpv4] ?: d.forceIpv4,
             requestSleepSeconds = this[k.requestSleepSeconds] ?: d.requestSleepSeconds,
+            channelItemLimit = this[k.channelItemLimit] ?: d.channelItemLimit,
             engineFallback = this[k.engineFallback] ?: d.engineFallback,
             updateChannel = enumOf(this[k.updateChannel], d.updateChannel),
             autoUpdateEngines = this[k.autoUpdateEngines] ?: d.autoUpdateEngines,

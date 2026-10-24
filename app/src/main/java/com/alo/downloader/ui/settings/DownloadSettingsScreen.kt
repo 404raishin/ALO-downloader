@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.documentfile.provider.DocumentFile
 import androidx.compose.material.icons.outlined.AudioFile
@@ -72,6 +73,15 @@ fun DownloadSettingsScreen(
             checked = s.downloadPlaylist,
             onCheckedChange = { viewModel.set(SettingKeys.downloadPlaylist, it) },
             icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
+        )
+
+        SliderPreference(
+            title = stringResource(R.string.pref_channel_limit),
+            value = s.channelItemLimit / 10,
+            range = 1..20,
+            onValueChange = { viewModel.set(SettingKeys.channelItemLimit, it * 10) },
+            icon = Icons.Outlined.Forum,
+            valueLabel = { context.getString(R.string.pref_channel_limit_value, it * 10) },
         )
 
         PreferenceCategory(stringResource(R.string.pref_cat_format))

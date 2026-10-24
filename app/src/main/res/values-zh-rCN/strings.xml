@@ -305,4 +305,6 @@
     <string name="widget_description">队列状态与剪贴板下载</string>
     <string name="widget_idle">没有进行中的下载</string>
     <string name="widget_paste">粘贴链接</string>
+    <string name="pref_channel_limit">每个 Telegram 频道的帖子数</string>
+    <string name="pref_channel_limit_value">最新 %1$d 条含媒体的帖子</string>
 </resources>

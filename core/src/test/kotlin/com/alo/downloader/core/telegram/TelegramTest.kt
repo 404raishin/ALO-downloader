@@ -50,6 +50,21 @@ class TelegramTest {
     }
 
     @Test
+    fun `channel preview page lists media from several posts`() {
+        val html = """
+            <div class="tgme_widget_message_wrap"><div class="tgme_widget_message" data-post="chan/10">
+              <a class="tgme_widget_message_photo_wrap" style="background-image:url('https://cdn/1.jpg')"></a>
+            </div></div>
+            <div class="tgme_widget_message_wrap"><div class="tgme_widget_message" data-post="chan/11">
+              <video src="https://cdn/2.mp4" class="tgme_widget_message_video js-message_video"></video>
+              <a class="tgme_widget_message_photo_wrap" style="background-image:url('https://cdn/3.jpg')"></a>
+            </div></div>
+        """.trimIndent()
+        assertEquals(listOf("https://cdn/1.jpg", "https://cdn/2.mp4", "https://cdn/3.jpg"), TelegramEmbedParser.parse(html).mediaUrls)
+        assertEquals("https://t.me/s/chan", TelegramEmbedParser.channelPreviewUrl("chan"))
+    }
+
+    @Test
     fun `embed url`() {
         assertEquals("https://t.me/durov/42?embed=1&mode=tme", TelegramEmbedParser.embedUrl(TelegramLink.PublicPost("durov", 42, false)))
     }

@@ -130,8 +130,9 @@ class TdlibSession(
         scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
     }
 
+    /** Waits while TDLib is still starting; false as soon as it needs a login (or times out). */
     suspend fun awaitReady(timeoutMs: Long = 15_000): Boolean =
-        withTimeoutOrNull(timeoutMs) { auth.filter { it is TelegramAuth.Ready || it is TelegramAuth.Closed }.first() } is TelegramAuth.Ready
+        withTimeoutOrNull(timeoutMs) { auth.filter { it !is TelegramAuth.Starting }.first() } is TelegramAuth.Ready
 
     /** Resolves a t.me link to its message (and the rest of its album, if any). */
     suspend fun messagesForLink(url: String): List<Message> {
@@ -147,6 +148,27 @@ class TdlibSession(
         val chat = client.searchPublicChat(username).getOrThrow()
         // TDLib message ids are server ids shifted by 20 bits.
         return client.getMessage(chat.id, messageId shl 20).getOrThrow()
+    }
+
+    suspend fun chatIdForUsername(username: String): Long = client.searchPublicChat(username).getOrThrow().id
+
+    /** Chat id behind an invite link, or null when the user is not a member yet. */
+    suspend fun chatIdForInvite(link: String): Long? =
+        client.checkChatInviteLink(link).getOrThrow().chatId.takeIf { it != 0L }
+
+    /** Newest messages with downloadable media in a chat, newest first. */
+    suspend fun recentMediaMessages(chatId: Long, limit: Int): List<Message> {
+        val found = mutableListOf<Message>()
+        var from = 0L
+        for (page in 0 until MAX_HISTORY_PAGES) {
+            val batch = client.getChatHistory(chatId, from, 0, HISTORY_PAGE, false).getOrThrow()
+                .messages.filterNotNull()
+            if (batch.isEmpty()) break
+            found += batch.filter { mediaOf(it).isNotEmpty() }
+            if (found.size >= limit) break
+            from = batch.last().id
+        }
+        return found.take(limit)
     }
 
     fun mediaOf(message: Message): List<TelegramMedia> {
@@ -195,4 +217,9 @@ class TdlibSession(
     }
 
     private fun <T> TdlResult<T>.getOrNull(): T? = (this as? TdlResult.Success)?.result
+
+    private companion object {
+        const val HISTORY_PAGE = 50
+        const val MAX_HISTORY_PAGES = 40
+    }
 }

@@ -50,6 +50,7 @@ object DownloadOptionsCodec {
         put("useAria2c", o.useAria2c)
         put("forceIpv4", o.forceIpv4)
         put("requestSleepSeconds", o.requestSleepSeconds)
+        put("maxItems", o.maxItems)
         put("customArgs", JsonArray(o.customArgs.map { JsonPrimitive(it) }))
         put("customReplacesDefaults", o.customReplacesDefaults)
         o.customArgsEngine?.let { put("customArgsEngine", it.id) }
@@ -88,6 +89,7 @@ object DownloadOptionsCodec {
             useAria2c = obj.bool("useAria2c") ?: d.useAria2c,
             forceIpv4 = obj.bool("forceIpv4") ?: d.forceIpv4,
             requestSleepSeconds = obj["requestSleepSeconds"]?.jsonPrimitive?.doubleOrNull ?: d.requestSleepSeconds,
+            maxItems = obj["maxItems"]?.jsonPrimitive?.intOrNull ?: d.maxItems,
             customArgs = runCatching { obj["customArgs"]?.jsonArray?.map { it.jsonPrimitive.content } }.getOrNull()
                 ?: d.customArgs,
             customReplacesDefaults = obj.bool("customReplacesDefaults") ?: d.customReplacesDefaults,

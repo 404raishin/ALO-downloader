@@ -25,6 +25,9 @@ object TelegramEmbedParser {
     fun embedUrl(link: TelegramLink.PublicPost): String =
         "https://t.me/${link.username}/${link.messageId}?embed=1&mode=tme" + if (link.single) "&single=1" else ""
 
+    /** Public web preview of a channel; lists its most recent posts. */
+    fun channelPreviewUrl(username: String): String = "https://t.me/s/$username"
+
     fun parse(html: String): TelegramEmbed {
         val media = mutableListOf<String>()
         for (match in tag.findAll(html)) {

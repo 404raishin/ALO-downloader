@@ -47,6 +47,8 @@ data class DownloadOptions(
     val forceIpv4: Boolean = false,
     /** Delay between requests for gallery-dl, in seconds. Helps against rate limits. */
     val requestSleepSeconds: Double = 0.0,
+    /** Upper bound of items for whole channels/profiles; 0 lets the engine decide. */
+    val maxItems: Int = 0,
     /** Raw extra arguments appended to the engine command line (custom templates). */
     val customArgs: List<String> = emptyList(),
     /** When true, [customArgs] replace the generated format/post-processing options. */
