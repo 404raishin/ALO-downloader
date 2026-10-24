@@ -52,8 +52,6 @@ class CookieRepository @Inject constructor(private val vault: CookieVault) {
         return vault.get(platform)?.cookies.orEmpty().filterNot { it.isExpired(now) }
     }
 
-    fun hasCookies(platform: Platform): Boolean = cookiesFor(platform).isNotEmpty()
-
     /**
      * Writes a cookies.txt for one task. Generic links get the cookies imported for unknown
      * domains; known platforms get their own slot only.

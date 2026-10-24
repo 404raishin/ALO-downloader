@@ -135,7 +135,7 @@ class DownloadManager @Inject constructor(
         val task = taskDao.get(id) ?: return
         if (task.status.isFinished) return
         taskDao.setStatus(id, DownloadStatus.CANCELED)
-        executor.stop(id)
+        executor.stop(id, await = true)
         storage.workDir(id).deleteRecursively()
         WorkManager.getInstance(context).cancelUniqueWork(scheduleName(id))
         notifier.cancel(id)

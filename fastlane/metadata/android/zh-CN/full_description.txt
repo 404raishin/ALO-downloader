@@ -1,0 +1,15 @@
+ALO 下载器是一款全能媒体下载工具。在 Instagram、X、YouTube、Telegram 或浏览器中点击“分享”并选择 ALO，即可自动选用合适的引擎开始下载。
+
+<b>功能</b>
+<ul>
+<li>yt-dlp 下载视频和音频：格式与画质选择、提取音频、字幕、嵌入封面和元数据、播放列表、SponsorBlock、自定义命令模板</li>
+<li>gallery-dl 下载图集、轮播和主页（Instagram、X、Pinterest、Pixiv、Reddit 等）</li>
+<li>Telegram：公开帖子无需账号，私密频道和群组可使用你自己的账号登录（TDLib）</li>
+<li>按域名自动选择引擎并自动回退，统一的下载队列</li>
+<li>私密内容：在应用内登录或导入 cookies.txt，Cookie 在本机加密保存</li>
+<li>文件自动整理到 Download/ALO/Instagram、ALO/X、ALO/YouTube 等目录</li>
+<li>在应用内更新 yt-dlp 和 gallery-dl</li>
+<li>Material You 设计、深色模式、英文与简体中文</li>
+</ul>
+
+请仅下载你有权访问的内容。

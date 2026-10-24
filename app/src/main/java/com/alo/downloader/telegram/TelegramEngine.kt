@@ -49,6 +49,7 @@ class TelegramEngine @Inject constructor(
                 is TelegramLink.PublicPost -> downloadPublic(link, job, listener)
                 is TelegramLink.PrivatePost -> downloadWithTdlib(job, listener)
                     ?: failure(FailureReason.LOGIN_REQUIRED, "Log in to Telegram in ALO to download from private chats")
+                // TODO: download a whole channel (TDLib getChatHistory paging) and join via invite links.
                 is TelegramLink.Channel, is TelegramLink.Invite ->
                     failure(FailureReason.UNSUPPORTED_URL, "Share a link to a single post (t.me/channel/123)")
             }

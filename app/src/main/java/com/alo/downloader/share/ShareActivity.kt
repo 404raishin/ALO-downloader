@@ -43,6 +43,19 @@ class ShareActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handled = false
+        if (intent.action != ACTION_CLIPBOARD) {
+            handled = true
+            handle(SharedText.from(intent))
+        } else if (hasWindowFocus()) {
+            handled = true
+            handle(clipboardText(this))
+        }
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && !handled && intent?.action == ACTION_CLIPBOARD) {

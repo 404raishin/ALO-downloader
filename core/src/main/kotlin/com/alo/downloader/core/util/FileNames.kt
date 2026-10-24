@@ -39,10 +39,6 @@ object FileNames {
         else -> "application/octet-stream"
     }
 
-    fun isVideo(name: String) = mimeType(name).startsWith("video/")
-    fun isAudio(name: String) = mimeType(name).startsWith("audio/")
-    fun isImage(name: String) = mimeType(name).startsWith("image/")
-
     fun humanSize(bytes: Long): String {
         if (bytes < 1024) return "$bytes B"
         val units = listOf("KB", "MB", "GB", "TB")

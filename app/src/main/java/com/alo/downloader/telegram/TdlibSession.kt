@@ -55,6 +55,7 @@ data class TelegramMedia(val fileId: Int, val fileName: String, val size: Long)
  */
 class TdlibSession(
     private val databaseDir: File,
+    private val encryptionKey: ByteArray,
     private val apiId: Int,
     private val apiHash: String,
     private val deviceModel: String,
@@ -84,7 +85,7 @@ class TdlibSession(
                     false,
                     databaseDir.absolutePath,
                     File(databaseDir, "files").absolutePath,
-                    ByteArray(0),
+                    encryptionKey,
                     true,
                     true,
                     true,

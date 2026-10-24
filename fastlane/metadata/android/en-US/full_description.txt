@@ -1,0 +1,15 @@
+ALO Downloader is an all-in-one media downloader. Tap Share in Instagram, X, YouTube, Telegram or your browser, pick ALO, and the download starts automatically with the right engine.
+
+<b>Features</b>
+<ul>
+<li>yt-dlp for videos and audio: format and quality selection, audio extraction, subtitles, embedded thumbnails and metadata, playlists, SponsorBlock, custom command templates</li>
+<li>gallery-dl for image galleries, carousels and profiles (Instagram, X, Pinterest, Pixiv, Reddit and more)</li>
+<li>Telegram: public posts without an account, private channels and groups with your own login (TDLib)</li>
+<li>Automatic engine routing with fallback, one unified download queue</li>
+<li>Private content: log in inside the app or import cookies.txt; cookies are encrypted on the device</li>
+<li>Files sorted into Download/ALO/Instagram, ALO/X, ALO/YouTube…</li>
+<li>Update yt-dlp and gallery-dl from inside the app</li>
+<li>Material You design, dark mode, English and Simplified Chinese</li>
+</ul>
+
+Only download content you have the right to access.

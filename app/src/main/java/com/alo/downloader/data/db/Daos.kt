@@ -24,9 +24,6 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun get(id: String): DownloadTaskEntity?
 
-    @Query("SELECT * FROM tasks WHERE id = :id")
-    fun observe(id: String): Flow<DownloadTaskEntity?>
-
     @Transaction
     @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
     fun observeAllWithFiles(): Flow<List<TaskWithFiles>>
@@ -41,9 +38,6 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE status IN (:statuses)")
     suspend fun withStatus(statuses: List<DownloadStatus>): List<DownloadTaskEntity>
-
-    @Query("SELECT COUNT(*) FROM tasks WHERE status IN ('QUEUED','PREPARING','RUNNING')")
-    fun observePendingCount(): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM tasks WHERE status IN ('QUEUED','PREPARING','RUNNING')")
     suspend fun pendingCount(): Int
@@ -75,18 +69,12 @@ interface TaskDao {
 
     @Query("DELETE FROM tasks WHERE status IN ('COMPLETED','FAILED','CANCELED')")
     suspend fun clearFinished()
-
-    @Query("SELECT COUNT(*) FROM tasks WHERE url = :url AND status = 'COMPLETED'")
-    suspend fun completedCount(url: String): Int
 }
 
 @Dao
 interface FileDao {
     @Insert
     suspend fun insertAll(files: List<DownloadedFileEntity>)
-
-    @Query("SELECT * FROM files ORDER BY createdAt DESC")
-    fun observeAll(): Flow<List<DownloadedFileEntity>>
 
     @Query("SELECT * FROM files WHERE id = :id")
     suspend fun get(id: Long): DownloadedFileEntity?

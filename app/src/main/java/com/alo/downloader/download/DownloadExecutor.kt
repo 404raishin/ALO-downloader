@@ -25,6 +25,7 @@ import com.alo.downloader.data.settings.SettingsRepository
 import com.alo.downloader.engine.EngineRegistry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
@@ -74,16 +75,16 @@ class DownloadExecutor @Inject constructor(
         running
     }
 
-    /** Stops the attempt for [taskId]; its status must already be updated by the caller. */
-    suspend fun stop(taskId: String) {
+    /**
+     * Stops the attempt for [taskId]; its status must already be updated by the caller.
+     * With [await] it waits (bounded) until the engine has really let go of its files.
+     */
+    suspend fun stop(taskId: String, await: Boolean = false) {
         activeEngines[taskId]?.cancel(taskId)
-        jobs[taskId]?.let {
-            it.cancel()
-            it.join()
-        }
+        val job = jobs[taskId] ?: return
+        job.cancel()
+        if (await) withTimeoutOrNull(STOP_TIMEOUT_MS) { job.join() }
     }
-
-    fun isRunning(taskId: String) = jobs.containsKey(taskId)
 
     /** Runs until the queue is drained. Returns immediately if another loop is active. */
     suspend fun runQueue(onActiveCountChanged: suspend (Int) -> Unit = {}) {
@@ -102,12 +103,14 @@ class DownloadExecutor @Inject constructor(
                     val plan = QueuePlanner.plan(entries, settings.maxConcurrent, System.currentTimeMillis(), networkAllowed(settings))
                     plan.dueScheduled.forEach { taskDao.setStatus(it, DownloadStatus.QUEUED) }
                     for (id in plan.toStart) {
-                        val job = launch { runTask(id) }
+                        // Register before starting so a task that ends instantly cannot leave a stale entry.
+                        val job = launch(start = CoroutineStart.LAZY) { runTask(id) }
                         jobs[id] = job
                         job.invokeOnCompletion {
-                            jobs.remove(id)
+                            jobs.remove(id, job)
                             wake.trySend(Unit)
                         }
+                        job.start()
                     }
                     if (jobs.size != lastCount) {
                         lastCount = jobs.size
@@ -306,5 +309,6 @@ class DownloadExecutor @Inject constructor(
         const val TAG = "DownloadExecutor"
         const val POLL_MS = 5_000L
         const val PROGRESS_MS = 700L
+        const val STOP_TIMEOUT_MS = 10_000L
     }
 }

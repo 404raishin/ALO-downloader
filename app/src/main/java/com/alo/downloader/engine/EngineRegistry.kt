@@ -23,10 +23,6 @@ class EngineRegistry @Inject constructor(
         EngineType.TELEGRAM to telegram,
     )
 
-    fun get(type: EngineType): DownloadEngine? = engines[type]
-
     fun plan(url: String, platform: Platform, forced: EngineType?, allowFallback: Boolean): List<DownloadEngine> =
         EngineRouter.route(url, platform, forced, engines.keys, allowFallback).mapNotNull(engines::get)
-
-    fun all(): Collection<DownloadEngine> = engines.values
 }

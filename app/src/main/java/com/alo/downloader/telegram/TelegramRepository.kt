@@ -2,6 +2,7 @@ package com.alo.downloader.telegram
 
 import android.content.Context
 import android.os.Build
+import android.util.Base64
 import com.alo.downloader.BuildConfig
 import com.alo.downloader.data.cookie.CookieVault
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.security.SecureRandom
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +50,7 @@ class TelegramRepository @Inject constructor(
         val created = runCatching {
             TdlibSession(
                 databaseDir = dataDir.apply { mkdirs() },
+                encryptionKey = databaseKey(),
                 apiId = id,
                 apiHash = hash,
                 deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
@@ -62,6 +65,14 @@ class TelegramRepository @Inject constructor(
         session = created
         scope.launch { created.auth.collectLatest { _auth.value = it } }
         created
+    }
+
+    /** Random key for TDLib's local database, kept in the encrypted vault. */
+    private fun databaseKey(): ByteArray {
+        vault.getSecret(KEY_DB)?.let { return Base64.decode(it, Base64.NO_WRAP) }
+        val key = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        vault.putSecret(KEY_DB, Base64.encodeToString(key, Base64.NO_WRAP))
+        return key
     }
 
     suspend fun configure(apiId: String, apiHash: String) {
@@ -86,6 +97,7 @@ class TelegramRepository @Inject constructor(
         runCatching { session?.logOut() }
         restart()
         dataDir.deleteRecursively()
+        vault.putSecret(KEY_DB, null)
         _auth.value = if (isConfigured) TelegramAuth.Starting else TelegramAuth.NotConfigured
         if (isConfigured) ensureSession()
     }
@@ -97,6 +109,7 @@ class TelegramRepository @Inject constructor(
         dataDir.deleteRecursively()
         vault.putSecret(KEY_API_ID, null)
         vault.putSecret(KEY_API_HASH, null)
+        vault.putSecret(KEY_DB, null)
         _auth.value = TelegramAuth.NotConfigured
     }
 
@@ -108,5 +121,6 @@ class TelegramRepository @Inject constructor(
     private companion object {
         const val KEY_API_ID = "telegram.api_id"
         const val KEY_API_HASH = "telegram.api_hash"
+        const val KEY_DB = "telegram.db_key"
     }
 }

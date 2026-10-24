@@ -12,6 +12,7 @@ import os
 import sys
 import threading
 
+# TODO: run gallery-dl in a separate Python sub-interpreter/process to allow parallel jobs.
 _lock = threading.Lock()
 
 

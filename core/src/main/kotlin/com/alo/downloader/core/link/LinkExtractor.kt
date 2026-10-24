@@ -33,6 +33,4 @@ object LinkExtractor {
     }
 
     fun hostOf(url: String): String? = runCatching { URI(url).host?.lowercase()?.removePrefix("www.") }.getOrNull()
-
-    fun isLink(text: String?): Boolean = extractFirst(text) != null
 }
