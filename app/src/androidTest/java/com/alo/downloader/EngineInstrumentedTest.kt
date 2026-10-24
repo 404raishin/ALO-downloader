@@ -36,6 +36,14 @@ class EngineInstrumentedTest {
         assertNotNull(ytRuntime.version())
     }
 
+    /** Regression: starting Chaquopy must not break yt-dlp's separate Python process. */
+    @Test
+    fun ytDlpStillWorksAfterGalleryDlStarted() = runBlocking {
+        assertNotNull(gdlRuntime.version())
+        val result = ytDlp.download(Fixtures.job(Fixtures.clipUrl)) { }.success()
+        assertEquals(1, result.files.size)
+    }
+
     @Test
     fun ytDlpDownloadsDirectVideo() = runBlocking {
         val job = Fixtures.job(Fixtures.clipUrl)

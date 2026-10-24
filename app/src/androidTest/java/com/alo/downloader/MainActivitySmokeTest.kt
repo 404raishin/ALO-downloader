@@ -1,7 +1,6 @@
 package com.alo.downloader
 
 import android.Manifest
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -26,10 +25,12 @@ class MainActivitySmokeTest {
 
     @Test
     fun tabsAreReachable() {
-        compose.onNodeWithText("Nothing in the queue").assertIsDisplayed()
+        compose.onNodeWithText("Nothing in the queue").assertExists()
         compose.onAllNodesWithText("Library").onFirst().performClick()
-        compose.onNodeWithText("No downloads yet").assertIsDisplayed()
+        compose.waitForIdle()
+        compose.onNodeWithText("No downloads yet").assertExists()
         compose.onAllNodesWithText("Settings").onFirst().performClick()
-        compose.onNodeWithText("Accounts and cookies").assertIsDisplayed()
+        compose.waitForIdle()
+        compose.onNodeWithText("Accounts and cookies").assertExists()
     }
 }

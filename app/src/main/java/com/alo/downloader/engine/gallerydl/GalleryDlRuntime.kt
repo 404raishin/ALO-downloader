@@ -1,6 +1,7 @@
 package com.alo.downloader.engine.gallerydl
 
 import android.content.Context
+import android.system.Os
 import android.util.Log
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
@@ -23,6 +24,7 @@ class GalleryDlRuntime @Inject constructor(@ApplicationContext private val conte
     private val module: PyObject? by lazy {
         runCatching {
             if (!Python.isStarted()) Python.start(AndroidPlatform(context))
+            isolateEnvironment()
             Python.getInstance().getModule("alo_gallerydl")
         }.onFailure {
             Log.e(TAG, "Python start failed", it)
@@ -31,6 +33,18 @@ class GalleryDlRuntime @Inject constructor(@ApplicationContext private val conte
     }
 
     fun bridge(): PyObject? = module
+
+    /**
+     * Chaquopy exports PYTHONPATH & co. into the process environment. yt-dlp runs its own,
+     * different Python as a child process and would inherit them, loading Chaquopy's
+     * bytecode ("bad magic number in 'encodings'"). The embedded interpreter has already
+     * read them at start-up, so they can be removed.
+     */
+    private fun isolateEnvironment() {
+        System.getenv().keys.filter { it.startsWith("PYTHON") }.forEach { key ->
+            runCatching { Os.unsetenv(key) }.onFailure { Log.w(TAG, "unsetenv $key failed", it) }
+        }
+    }
 
     fun version(): String? = runCatching { module?.callAttr("version", wheelDir.absolutePath)?.toString() }.getOrNull()
 
