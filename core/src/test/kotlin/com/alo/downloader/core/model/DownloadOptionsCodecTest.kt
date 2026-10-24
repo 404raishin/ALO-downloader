@@ -21,6 +21,7 @@ class DownloadOptionsCodecTest {
             requestSleepSeconds = 1.5,
             customArgs = listOf("--embed-chapters", "-o", "%(id)s.%(ext)s"),
             customReplacesDefaults = true,
+            customArgsEngine = EngineType.GALLERY_DL,
         )
         assertEquals(options, DownloadOptionsCodec.decode(DownloadOptionsCodec.encode(options)))
     }

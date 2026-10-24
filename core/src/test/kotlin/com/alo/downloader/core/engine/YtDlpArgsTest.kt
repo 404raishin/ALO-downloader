@@ -2,6 +2,7 @@ package com.alo.downloader.core.engine
 
 import com.alo.downloader.core.model.AudioFormat
 import com.alo.downloader.core.model.DownloadOptions
+import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.SponsorBlockMode
 import com.alo.downloader.core.model.VideoContainer
 import com.alo.downloader.core.model.VideoQuality
@@ -96,6 +97,12 @@ class YtDlpArgsTest {
         assertFalse("--embed-thumbnail" in args)
         assertTrue("--cookies" in args)
         assertTrue("-o" in args)
+    }
+
+    @Test
+    fun `gallery-dl template is ignored by yt-dlp`() {
+        val opts = DownloadOptions(customArgs = listOf("--range", "1-3"), customArgsEngine = EngineType.GALLERY_DL)
+        assertFalse("--range" in YtDlpArgs.build(opts, dir))
     }
 
     @Test

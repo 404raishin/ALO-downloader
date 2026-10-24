@@ -37,6 +37,32 @@ class HomeViewModel @Inject constructor(
     private val _audioOnly = MutableStateFlow<Boolean?>(null)
     val audioOnly: StateFlow<Boolean?> = _audioOnly.asStateFlow()
 
+    /** Link found in the clipboard that the user has not acted on yet. */
+    private val _clipboardLink = MutableStateFlow<String?>(null)
+    val clipboardLink: StateFlow<String?> = _clipboardLink.asStateFlow()
+    private val seenClipboard = mutableSetOf<String>()
+
+    fun onClipboard(text: String?) {
+        if (!settings.value.clipboardDetection) return
+        val link = LinkExtractor.extractFirst(text) ?: return
+        if (link in seenClipboard || link == LinkExtractor.extractFirst(_input.value)) return
+        _clipboardLink.value = link
+    }
+
+    fun dismissClipboard() {
+        _clipboardLink.value?.let(seenClipboard::add)
+        _clipboardLink.value = null
+    }
+
+    fun downloadClipboard(onQueued: (Int) -> Unit) {
+        val link = _clipboardLink.value ?: return
+        dismissClipboard()
+        viewModelScope.launch {
+            val ids = downloadManager.enqueue(listOf(DownloadManager.Request(link, options = downloadManager.defaultOptions())))
+            onQueued(ids.size)
+        }
+    }
+
     fun setInput(text: String) { _input.value = text }
 
     fun toggleAudioOnly() { _audioOnly.value = !(_audioOnly.value ?: settings.value.audioOnly) }
@@ -46,7 +72,7 @@ class HomeViewModel @Inject constructor(
         val links = LinkExtractor.extractAll(_input.value)
         if (links.isEmpty()) { onQueued(0); return }
         viewModelScope.launch {
-            val options = settings.value.toDownloadOptions().let { o ->
+            val options = downloadManager.defaultOptions().let { o ->
                 _audioOnly.value?.let { o.copy(audioOnly = it) } ?: o
             }
             val ids = downloadManager.enqueue(links.map { DownloadManager.Request(it, options = options) })

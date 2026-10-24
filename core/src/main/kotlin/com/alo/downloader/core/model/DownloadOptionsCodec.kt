@@ -52,6 +52,7 @@ object DownloadOptionsCodec {
         put("requestSleepSeconds", o.requestSleepSeconds)
         put("customArgs", JsonArray(o.customArgs.map { JsonPrimitive(it) }))
         put("customReplacesDefaults", o.customReplacesDefaults)
+        o.customArgsEngine?.let { put("customArgsEngine", it.id) }
     }.toString()
 
     fun decode(text: String?): DownloadOptions {
@@ -90,6 +91,7 @@ object DownloadOptionsCodec {
             customArgs = runCatching { obj["customArgs"]?.jsonArray?.map { it.jsonPrimitive.content } }.getOrNull()
                 ?: d.customArgs,
             customReplacesDefaults = obj.bool("customReplacesDefaults") ?: d.customReplacesDefaults,
+            customArgsEngine = EngineType.fromId(obj.str("customArgsEngine")),
         )
     }
 

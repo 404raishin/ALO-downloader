@@ -51,7 +51,12 @@ data class DownloadOptions(
     val customArgs: List<String> = emptyList(),
     /** When true, [customArgs] replace the generated format/post-processing options. */
     val customReplacesDefaults: Boolean = false,
+    /** Engine the custom arguments are written for; other engines ignore them. Null = yt-dlp. */
+    val customArgsEngine: EngineType? = null,
 ) {
+    fun customArgsFor(engine: EngineType): List<String> =
+        if ((customArgsEngine ?: EngineType.YT_DLP) == engine) customArgs else emptyList()
+
     companion object {
         const val DEFAULT_FILENAME_TEMPLATE = "%(title).150B [%(id)s].%(ext)s"
     }

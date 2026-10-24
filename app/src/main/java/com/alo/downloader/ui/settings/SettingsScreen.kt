@@ -1,38 +1,56 @@
 package com.alo.downloader.ui.settings
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.ManageAccounts
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import com.alo.downloader.BuildConfig
 import com.alo.downloader.R
-import com.alo.downloader.ui.common.IconTile
+
+enum class SettingsDestination { APPEARANCE, DOWNLOAD, NETWORK, ACCOUNTS, TEMPLATES, ENGINES, ABOUT }
 
 @Composable
-fun SettingsScreen() {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { LargeTopAppBar(title = { Text(stringResource(R.string.nav_settings)) }, scrollBehavior = scrollBehavior) },
-    ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about)) },
-                    supportingContent = { Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME)) },
-                    leadingContent = { IconTile(Icons.Outlined.Info) },
-                )
-            }
-        }
+fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
+    SettingsPage(title = stringResource(R.string.nav_settings), onBack = null) {
+        PreferenceItem(
+            title = stringResource(R.string.settings_appearance),
+            summary = stringResource(R.string.settings_appearance_summary),
+            icon = Icons.Outlined.Palette,
+            onClick = { onNavigate(SettingsDestination.APPEARANCE) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_download),
+            summary = stringResource(R.string.settings_download_summary),
+            icon = Icons.Outlined.Download,
+            onClick = { onNavigate(SettingsDestination.DOWNLOAD) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_network),
+            summary = stringResource(R.string.settings_network_summary),
+            icon = Icons.Outlined.Language,
+            onClick = { onNavigate(SettingsDestination.NETWORK) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_accounts),
+            summary = stringResource(R.string.settings_accounts_summary),
+            icon = Icons.Outlined.ManageAccounts,
+            onClick = { onNavigate(SettingsDestination.ACCOUNTS) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_templates),
+            summary = stringResource(R.string.settings_templates_summary),
+            icon = Icons.Outlined.Code,
+            onClick = { onNavigate(SettingsDestination.TEMPLATES) },
+        )
+        PreferenceItem(
+            title = stringResource(R.string.settings_about),
+            summary = stringResource(R.string.settings_about_summary),
+            icon = Icons.Outlined.Info,
+            onClick = { onNavigate(SettingsDestination.ABOUT) },
+        )
     }
 }

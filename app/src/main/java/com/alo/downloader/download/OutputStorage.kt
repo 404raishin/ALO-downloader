@@ -142,6 +142,10 @@ class OutputStorage @Inject constructor(@ApplicationContext private val context:
 
     fun archiveFile(name: String): File = File(context.filesDir, "archive/$name").apply { parentFile?.mkdirs() }
 
+    fun clearArchives() {
+        File(context.filesDir, "archive").deleteRecursively()
+    }
+
     companion object {
         const val ROOT = "ALO"
     }

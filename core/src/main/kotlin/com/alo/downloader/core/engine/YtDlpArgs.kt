@@ -2,6 +2,7 @@ package com.alo.downloader.core.engine
 
 import com.alo.downloader.core.model.AudioFormat
 import com.alo.downloader.core.model.DownloadOptions
+import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.SponsorBlockMode
 import com.alo.downloader.core.model.VideoContainer
 import com.alo.downloader.core.model.VideoQuality
@@ -76,9 +77,10 @@ object YtDlpArgs {
             opt("--no-playlist")
         }
 
-        if (options.customReplacesDefaults && options.customArgs.isNotEmpty()) {
-            if (!options.customArgs.containsOutputTemplate()) opt("-o", outputTemplate(options))
-            args += options.customArgs
+        val custom = options.customArgsFor(EngineType.YT_DLP)
+        if (options.customReplacesDefaults && custom.isNotEmpty()) {
+            if (!custom.containsOutputTemplate()) opt("-o", outputTemplate(options))
+            args += custom
             return args
         }
 
@@ -126,7 +128,7 @@ object YtDlpArgs {
             SponsorBlockMode.REMOVE -> opt("--sponsorblock-remove", options.sponsorBlockCategories)
         }
 
-        args += options.customArgs
+        args += custom
         return args
     }
 

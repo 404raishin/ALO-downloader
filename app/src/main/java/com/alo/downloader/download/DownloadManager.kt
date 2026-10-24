@@ -7,6 +7,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import com.alo.downloader.core.engine.CommandLine
 import com.alo.downloader.core.link.LinkExtractor
 import com.alo.downloader.core.model.DownloadOptions
 import com.alo.downloader.core.model.DownloadOptionsCodec
@@ -16,6 +17,7 @@ import com.alo.downloader.core.router.PlatformResolver
 import com.alo.downloader.data.db.DownloadTaskEntity
 import com.alo.downloader.data.db.FileDao
 import com.alo.downloader.data.db.TaskDao
+import com.alo.downloader.data.db.TemplateDao
 import com.alo.downloader.data.settings.SettingsRepository
 import com.alo.downloader.engine.EngineRegistry
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -35,6 +37,7 @@ class DownloadManager @Inject constructor(
     private val notifier: DownloadNotifier,
     private val storage: OutputStorage,
     private val engines: EngineRegistry,
+    private val templateDao: TemplateDao,
 ) {
 
     data class Request(
@@ -57,9 +60,10 @@ class DownloadManager @Inject constructor(
     suspend fun enqueue(requests: List<Request>): List<String> {
         if (requests.isEmpty()) return emptyList()
         val settings = settingsRepository.current()
+        val defaults = defaultOptions()
         val tasks = requests.map { r ->
             val platform = PlatformResolver.resolve(r.url)
-            val options = r.options ?: settings.toDownloadOptions()
+            val options = r.options ?: defaults
             val scheduled = r.scheduledAt?.takeIf { it > System.currentTimeMillis() }
             DownloadTaskEntity(
                 id = UUID.randomUUID().toString(),
@@ -79,6 +83,28 @@ class DownloadManager @Inject constructor(
         tasks.filter { it.scheduledAt != null }.forEach { scheduleStart(it.id, it.scheduledAt!!) }
         if (tasks.any { it.status == DownloadStatus.QUEUED }) kick()
         return tasks.map { it.id }
+    }
+
+    /** Options from the settings, with the active command template applied. */
+    suspend fun defaultOptions(): DownloadOptions {
+        val options = settingsRepository.current().toDownloadOptions()
+        val template = activeTemplate() ?: return options
+        return options.copy(
+            customArgs = template.args,
+            customReplacesDefaults = template.replaceDefaults,
+            customArgsEngine = template.engine,
+        )
+    }
+
+    data class ActiveTemplate(val args: List<String>, val replaceDefaults: Boolean, val engine: EngineType)
+
+    /** The command template selected in settings, if custom commands are switched on. */
+    suspend fun activeTemplate(): ActiveTemplate? {
+        val settings = settingsRepository.current()
+        if (!settings.customCommandEnabled || settings.selectedTemplateId < 0) return null
+        val t = templateDao.get(settings.selectedTemplateId) ?: return null
+        val args = runCatching { CommandLine.split(t.arguments) }.getOrNull() ?: return null
+        return ActiveTemplate(args, t.replaceDefaults, EngineType.fromId(t.engine) ?: EngineType.YT_DLP)
     }
 
     suspend fun pause(id: String) {
