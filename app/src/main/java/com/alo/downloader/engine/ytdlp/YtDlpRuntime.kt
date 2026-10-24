@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +43,13 @@ class YtDlpRuntime @Inject constructor(@ApplicationContext private val context: 
         }
     }
 
+    /**
+     * yt-dlp's cache. youtubedl-android passes `--no-cache-dir` unless a cache dir is set, which
+     * makes yt-dlp parse YouTube's whole player script in QuickJS on every download (minutes on a
+     * phone) instead of reusing the preprocessed player.
+     */
+    val cacheDir: File get() = File(context.cacheDir, "yt-dlp")
+
     @Volatile private var reportedVersion: String? = null
 
     /**
@@ -64,3 +72,7 @@ class YtDlpRuntime @Inject constructor(@ApplicationContext private val context: 
 
     private companion object { const val TAG = "YtDlpRuntime" }
 }
+
+/** Must go through addOption: the library only skips its `--no-cache-dir` for options, not commands. */
+fun YoutubeDLRequest.withCacheDir(runtime: YtDlpRuntime): YoutubeDLRequest =
+    addOption("--cache-dir", runtime.cacheDir.apply { mkdirs() }.absolutePath)

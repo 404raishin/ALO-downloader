@@ -29,6 +29,7 @@ data class EngineProgress(
     val filesDone: Int = 0,
     val title: String? = null,
     val line: String? = null,
+    val stage: EngineStage? = null,
 )
 
 fun interface ProgressListener {

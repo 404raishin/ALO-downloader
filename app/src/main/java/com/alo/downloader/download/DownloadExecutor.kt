@@ -58,6 +58,7 @@ class DownloadExecutor @Inject constructor(
     private val notifier: DownloadNotifier,
     private val engines: EngineRegistry,
     private val credentials: TaskCredentials,
+    private val liveStatus: LiveStatus,
 ) {
     private val wake = Channel<Unit>(Channel.CONFLATED)
     private val jobs = ConcurrentHashMap<String, Job>()
@@ -182,6 +183,7 @@ class DownloadExecutor @Inject constructor(
                 val p = progress.value ?: continue
                 if (p == last) continue
                 last = p
+                liveStatus.set(id, LiveStatus.Entry(p.stage, p.line?.trim()?.takeIf { it.isNotEmpty() }))
                 taskDao.setProgress(id, p.percent ?: -1f, p.speed, p.etaSeconds, p.filesDone, p.title)
                 taskDao.get(id)?.takeIf { it.status.isActive }?.let(notifier::showProgress)
             }
@@ -242,6 +244,7 @@ class DownloadExecutor @Inject constructor(
             throw e
         } finally {
             reporter.cancel()
+            liveStatus.clear(id)
             activeEngines.remove(id)
             auth?.cleanup()
         }

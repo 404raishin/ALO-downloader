@@ -313,4 +313,10 @@
     <string name="diagnostics_intro">如果下载无法使用，请复制此报告并附在问题反馈中。报告包含你的设备型号和失败的链接。</string>
     <string name="diagnostics_copy">复制报告</string>
     <string name="diagnostics_collecting">正在收集…首次启动引擎可能需要一分钟。</string>
+    <string name="stage_extracting">正在读取页面…</string>
+    <string name="stage_solving_challenges">正在处理 YouTube 的 JS 验证…</string>
+    <string name="stage_solving_challenges_hint">首次下载 YouTube 视频时，在手机上可能需要几分钟，之后会复用结果。</string>
+    <string name="stage_downloading">正在下载媒体…</string>
+    <string name="stage_merging">正在合并视频和音频…</string>
+    <string name="stage_post_processing">正在收尾…</string>
 </resources>

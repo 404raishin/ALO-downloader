@@ -4,10 +4,12 @@ import com.alo.downloader.core.engine.DownloadEngine
 import com.alo.downloader.core.engine.EngineJob
 import com.alo.downloader.core.engine.EngineProgress
 import com.alo.downloader.core.engine.EngineResult
+import com.alo.downloader.core.engine.EngineStage
 import com.alo.downloader.core.engine.ErrorClassifier
 import com.alo.downloader.core.engine.OutputScanner
 import com.alo.downloader.core.engine.ProgressListener
 import com.alo.downloader.core.engine.YtDlpArgs
+import com.alo.downloader.core.engine.YtDlpOutput
 import com.alo.downloader.core.model.DownloadError
 import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.FailureReason
@@ -40,10 +42,12 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
         val metaFile = File(job.workDir, ".meta/info.tsv").apply { parentFile?.mkdirs(); delete() }
         val args = YtDlpArgs.build(job.options, job.workDir, job.cookieFile, job.archiveFile) +
             listOf("--print-to-file", "video:%(title)s\t%(thumbnail)s", metaFile.absolutePath)
-        val request = YoutubeDLRequest(job.url).addCommands(args)
+        val request = YoutubeDLRequest(job.url).addCommands(args).withCacheDir(runtime)
         val log = OutputTail()
         var title: String? = null
         var lastMetaCheck = 0L
+        var stage: EngineStage? = null
+        var percent: Float? = null
 
         return coroutineScope {
             // execute() blocks; kill the yt-dlp process as soon as the coroutine is cancelled.
@@ -63,13 +67,20 @@ class YtDlpEngine @Inject constructor(private val runtime: YtDlpRuntime) : Downl
                             lastMetaCheck = now
                             title = readTitle(metaFile)
                         }
+                        YtDlpOutput.stage(line)?.let {
+                            if (it != stage) percent = null
+                            stage = it
+                        }
+                        // Keep the last percentage between download lines so the bar does not flicker.
+                        (progress.takeIf { it >= 0 } ?: YtDlpOutput.percent(line))?.let { percent = it }
                         listener.onProgress(
                             EngineProgress(
-                                percent = progress.takeIf { it >= 0 },
+                                percent = percent,
                                 etaSeconds = eta.takeIf { it >= 0 },
                                 speed = SPEED.find(line)?.groupValues?.get(1),
                                 title = title,
                                 line = line,
+                                stage = stage,
                             ),
                         )
                     }

@@ -74,6 +74,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val queue by viewModel.queue.collectAsStateWithLifecycle()
+    val live by viewModel.live.collectAsStateWithLifecycle()
     val input by viewModel.input.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val audioOverride by viewModel.audioOnly.collectAsStateWithLifecycle()
@@ -154,7 +155,7 @@ fun HomeScreen(
                 }
             } else {
                 items(queue, key = { it.task.id }) { item ->
-                    TaskCard(item, actions, Modifier.padding(horizontal = 16.dp))
+                    TaskCard(item, actions, Modifier.padding(horizontal = 16.dp), live = live[item.task.id])
                 }
             }
             item { Spacer(Modifier.height(24.dp)) }

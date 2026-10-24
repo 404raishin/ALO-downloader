@@ -317,4 +317,10 @@
     <string name="diagnostics_intro">If downloads do not work, copy this report and include it in your bug report. It contains your device model and the links that failed.</string>
     <string name="diagnostics_copy">Copy report</string>
     <string name="diagnostics_collecting">Collecting… starting the engines can take a minute the first time.</string>
+    <string name="stage_extracting">Reading the page…</string>
+    <string name="stage_solving_challenges">Solving YouTube\'s JS challenge…</string>
+    <string name="stage_solving_challenges_hint">The first YouTube download can take a few minutes on a phone. Later ones reuse the result.</string>
+    <string name="stage_downloading">Downloading media…</string>
+    <string name="stage_merging">Merging video and audio…</string>
+    <string name="stage_post_processing">Finishing up…</string>
 </resources>

@@ -44,7 +44,7 @@ class MediaInfoFetcher @Inject constructor(
         val platform = PlatformResolver.resolve(url)
         val cookieFile = cookies.writeCookieFile(platform, dir)
         try {
-            val request = YoutubeDLRequest(url).addCommands(YtDlpArgs.infoArgs(options, cookieFile))
+            val request = YoutubeDLRequest(url).addCommands(YtDlpArgs.infoArgs(options, cookieFile)).withCacheDir(runtime)
             val response = runInterruptible { YoutubeDL.getInstance().execute(request, id, false, null) }
             MediaInfoParser.parse(response.out)?.let { Result.success(it) }
                 ?: Result.failure(MediaInfoException(ErrorClassifier.toError(response.err, EngineType.YT_DLP, cookieFile != null)))

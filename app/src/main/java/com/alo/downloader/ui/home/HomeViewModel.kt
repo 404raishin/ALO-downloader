@@ -8,6 +8,7 @@ import com.alo.downloader.data.db.TaskWithFiles
 import com.alo.downloader.data.settings.AppSettings
 import com.alo.downloader.data.settings.SettingsRepository
 import com.alo.downloader.download.DownloadManager
+import com.alo.downloader.download.LiveStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,10 +23,13 @@ class HomeViewModel @Inject constructor(
     private val downloadManager: DownloadManager,
     taskDao: TaskDao,
     settingsRepository: SettingsRepository,
+    liveStatus: LiveStatus,
 ) : ViewModel() {
 
     val queue: StateFlow<List<TaskWithFiles>> = taskDao.observeUnfinished()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val live: StateFlow<Map<String, LiveStatus.Entry>> = liveStatus.entries
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())

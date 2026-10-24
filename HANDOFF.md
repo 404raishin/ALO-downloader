@@ -60,6 +60,11 @@
   - Engine start errors shown on the Engines screen.
   - Settings → About → Diagnostics: a copyable report with device, Android version, ABIs, page size, engine versions or errors, and recent failures.
 - **Next step:** ask the user to install beta 2 and paste the Diagnostics report, plus the link or site they used. Then fix based on what it shows.
+- **Beta 2 on the phone:** engines load, but a YouTube Shorts download sat at "Downloading" with an indeterminate bar.
+  - Cause (likely, not reproduced: YouTube is unreachable from the sandbox): the bundled yt-dlp 2025.11.12 solves YouTube's JS challenges with the bundled QuickJS, and youtubedl-android adds `--no-cache-dir` unless a cache dir is passed via `addOption`. So every run parsed the full player in QuickJS, which takes minutes on a phone.
+  - Fix: `--cache-dir` set to `cacheDir/yt-dlp` (download and info fetch), so the preprocessed player is reused.
+  - The queue card now shows the stage (reading page / solving JS challenge / downloading / merging / finishing) and yt-dlp's last output line, through the in-memory `LiveStatus`.
+  - The percentage is now also parsed from `ETA Unknown` lines, which the library ignores.
 
 ## Remaining TODO / known issues
 - gallery-dl runs only one job at a time (single interpreter).

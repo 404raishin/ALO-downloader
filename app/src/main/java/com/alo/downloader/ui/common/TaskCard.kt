@@ -45,15 +45,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.alo.downloader.R
+import com.alo.downloader.core.engine.EngineStage
 import com.alo.downloader.core.model.DownloadStatus
 import com.alo.downloader.core.model.EngineType
 import com.alo.downloader.core.model.Platform
 import com.alo.downloader.data.db.TaskWithFiles
 import com.alo.downloader.download.DownloadNotifier
+import com.alo.downloader.download.LiveStatus
 import java.text.DateFormat
 import java.util.Date
 
@@ -70,7 +73,7 @@ data class TaskActions(
 )
 
 @Composable
-fun TaskCard(item: TaskWithFiles, actions: TaskActions, modifier: Modifier = Modifier) {
+fun TaskCard(item: TaskWithFiles, actions: TaskActions, modifier: Modifier = Modifier, live: LiveStatus.Entry? = null) {
     val task = item.task
     val platform = Platform.fromId(task.platform)
     var menu by remember { mutableStateOf(false) }
@@ -153,6 +156,7 @@ fun TaskCard(item: TaskWithFiles, actions: TaskActions, modifier: Modifier = Mod
                     if (details.isNotEmpty()) {
                         Text(details.joinToString(" · "), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    live?.let { LiveLine(it) }
                 }
                 DownloadStatus.FAILED -> {
                     task.errorReason?.let { reason ->
@@ -187,6 +191,43 @@ fun TaskCard(item: TaskWithFiles, actions: TaskActions, modifier: Modifier = Mod
             ControlRow(task.status, task.id, actions)
         }
     }
+}
+
+/** Shows what the engine is doing while there is no percentage to show, e.g. YouTube's JS challenge. */
+@Composable
+private fun LiveLine(live: LiveStatus.Entry) {
+    live.stage?.let { stage ->
+        Text(
+            stringResource(stageText(stage)),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        if (stage == EngineStage.SOLVING_CHALLENGES) {
+            Text(
+                stringResource(R.string.stage_solving_challenges_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    live.line?.let {
+        Text(
+            it,
+            style = MaterialTheme.typography.labelSmall,
+            fontFamily = FontFamily.Monospace,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+private fun stageText(stage: EngineStage) = when (stage) {
+    EngineStage.EXTRACTING -> R.string.stage_extracting
+    EngineStage.SOLVING_CHALLENGES -> R.string.stage_solving_challenges
+    EngineStage.DOWNLOADING -> R.string.stage_downloading
+    EngineStage.MERGING -> R.string.stage_merging
+    EngineStage.POST_PROCESSING -> R.string.stage_post_processing
 }
 
 @Composable
